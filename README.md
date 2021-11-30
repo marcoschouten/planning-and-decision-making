@@ -9,8 +9,9 @@ RO47005 Planning &amp; Decision Making
 
 Task Division
 
-Task1: World Building, Simulation, Map.
-Guy: Chenghao
-1st, generate a hardcoded static environment (so that other team mates can test their algorithms)
-2nd, generate a randomizer i.e.  given some input parameters (complexity of map 0,1 value), generate maps that have reachable paths from start to goal.
-3rd, transfer this code to ROS
+Task1: World Building, Simulation, Map. **Chenghao**
+<ol>
+  <li>generate a hardcoded static environment (so that other team mates can test their algorithms)</li>
+  <li>generate a randomizer i.e.  given some input parameters (complexity of map 0,1 value), generate maps that have reachable paths from start to goal.</li>
+  <li>transfer this code to ROS</li>
+</ol>
