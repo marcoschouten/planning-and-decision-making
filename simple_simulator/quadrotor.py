@@ -60,7 +60,7 @@ class Quadrotor():
         self.t_step = 0.01
 
         # Initialize state
-        self.state = np.zeros(13)
+        self.state = self._unpack_state(np.zeros(13))
 
     def reset(self, position=[0, 0, 0], yaw=0, pitch=0, roll=0):
         '''
