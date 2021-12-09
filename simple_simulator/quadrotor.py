@@ -60,7 +60,7 @@ class Quadrotor():
         self.t_step = 0.01
 
         # Initialize state
-        self.state = self._unpack_state(np.zeros(13))
+        self.state = _unpack_state(np.zeros(13))
 
     def reset(self, position=[0, 0, 0], yaw=0, pitch=0, roll=0):
         '''
@@ -80,7 +80,7 @@ class Quadrotor():
         s[8] = quat[2]
         s[9] = quat[3]
         # the unassigned values of s are zeros
-        self.state = self._unpack_state(s)
+        self.state = _unpack_state(s)
         return self.state
 
     def step(self, cmd_rotor_speeds):
@@ -107,12 +107,12 @@ class Quadrotor():
         '''
         The next state can be obtained through integration （Runge-Kutta）
         '''
-        s = Quadrotor._pack_state(self.state)
+        s = _pack_state(self.state)
         sol = scipy.integrate.solve_ivp(
             s_dot_fn, (0, self.t_step), s, first_step=self.t_step)
         s = sol['y'][:, -1]
         # turn state back to dict
-        self.state = Quadrotor._unpack_state(s)
+        self.state = _unpack_state(s)
 
         # Re-normalize unit quaternion.
         reward = 0
@@ -126,7 +126,7 @@ class Quadrotor():
         an autonomous ODE.
         """
 
-        state = Quadrotor._unpack_state(s)
+        state = _unpack_state(s)
         # page 73
         # Position derivative.
         x_dot = state['v']
@@ -171,22 +171,21 @@ class Quadrotor():
                          [s[2], 0, -s[0]],
                          [-s[1], s[0], 0]])
 
-    @classmethod
-    def _pack_state(cls, state):
-        """
-        Convert a state dict to Quadrotor's private internal vector representation.
-        """
-        s = np.zeros((13,))
-        s[0:3] = state['x']
-        s[3:6] = state['v']
-        s[6:10] = state['q']
-        s[10:13] = state['w']
-        return s
+def _pack_state(state):
+    """
+    Convert a state dict to Quadrotor's private internal vector representation.
+    """
+    s = np.zeros((13,))
+    s[0:3] = state['x']
+    s[3:6] = state['v']
+    s[6:10] = state['q']
+    s[10:13] = state['w']
+    return s
 
-    @classmethod
-    def _unpack_state(cls, s) -> object:
-        """
-        Convert Quadrotor's private internal vector representation to a state dict.
-        """
-        state = {'x': s[0:3], 'v': s[3:6], 'q': s[6:10], 'w': s[10:13]}
-        return state
+
+def _unpack_state(s):
+    """
+    Convert Quadrotor's private internal vector representation to a state dict.
+    """
+    state = {'x': s[0:3], 'v': s[3:6], 'q': s[6:10], 'w': s[10:13]}
+    return state

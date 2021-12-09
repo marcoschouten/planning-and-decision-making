@@ -6,21 +6,21 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 
-def visualization(real_trajectory, cmd_trajectory):
+def visualization(real_trajectory, des_trajectory):
     fig = plt.figure()
     ax1 = p3.Axes3D(fig)  # 3D place for drawing
     real_trajectory['x'] = np.array(real_trajectory['x'])
     real_trajectory['y'] = np.array(real_trajectory['y'])
     real_trajectory['z'] = np.array(real_trajectory['z'])
-    cmd_trajectory['x'] = np.array(cmd_trajectory['x'])
-    cmd_trajectory['y'] = np.array(cmd_trajectory['y'])
-    cmd_trajectory['z'] = np.array(cmd_trajectory['z'])
+    des_trajectory['x'] = np.array(des_trajectory['x'])
+    des_trajectory['y'] = np.array(des_trajectory['y'])
+    des_trajectory['z'] = np.array(des_trajectory['z'])
     point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'ro',
                     label='Quadrotor')
     line1, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
                     label='Real_Trajectory')
-    line2, = ax1.plot(cmd_trajectory['x'][0], cmd_trajectory['y'][0], cmd_trajectory['z'][0],
-                    label='CMD_Trajectory')
+    line2, = ax1.plot(des_trajectory['x'][0], des_trajectory['y'][0], des_trajectory['z'][0],
+                    label='Des_trajectory')
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
@@ -32,9 +32,9 @@ def visualization(real_trajectory, cmd_trajectory):
         line1.set_xdata(real_trajectory['x'][:i + 5])
         line1.set_ydata(real_trajectory['y'][:i + 5])
         line1.set_3d_properties(real_trajectory['z'][:i + 5])
-        line2.set_xdata(cmd_trajectory['x'][:i + 5])
-        line2.set_ydata(cmd_trajectory['y'][:i + 5])
-        line2.set_3d_properties(cmd_trajectory['z'][:i + 5])
+        line2.set_xdata(des_trajectory['x'][:i + 5])
+        line2.set_ydata(des_trajectory['y'][:i + 5])
+        line2.set_3d_properties(des_trajectory['z'][:i + 5])
         point.set_xdata(real_trajectory['x'][i])
         point.set_ydata(real_trajectory['y'][i])
         point.set_3d_properties(real_trajectory['z'][i])
@@ -51,14 +51,14 @@ def visualization(real_trajectory, cmd_trajectory):
 if __name__=="__main__":
     quad_model = quadrotor.Quadrotor()
     quad_model.reset()
-    quad_controller = controller.PDcontroller()
+    quad_controller = controller.Linear_MPC()
     time_step = 1e-2
-    simu_time = 60
+    simu_time = 1
     num_iter = int(simu_time / time_step)
     cur_time = 0
 
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    cmd_trajectory = {'x': [], 'y': [], 'z': []}
+    des_trajectory = {'x': [], 'y': [], 'z': []}
     
     # initialize performance matrics
     accu_error_pos = np.zeros((3, 1))
@@ -69,11 +69,12 @@ if __name__=="__main__":
     # select trajectory
     input_traj = trajectory.diamond
     _, final_pos = trajectory.generate_trajec(input_traj)
-    
+
     # start simulation
     for i in range(num_iter):
-        control_input, cmd_state = quad_controller.control(cur_time, quad_model.state, input_traj)
+        control_input, des_state, error_pos = quad_controller.control(cur_time, quad_model.state, input_traj)
         cmd_rotor_speeds = control_input["cmd_motor_speeds"]
+        # print(cmd_rotor_speeds)
         obs, _, _, _ = quad_model.step(cmd_rotor_speeds)
         cur_time += time_step
         # check whether the terminal point is reached
@@ -83,16 +84,15 @@ if __name__=="__main__":
         else:
             total_time = simu_time
         # record performance matrics
-        error_pos = control_input['error_pos'] * time_step
-        accu_error_pos += error_pos 
+        accu_error_pos += error_pos * time_step
         square_ang_vel += cmd_rotor_speeds ** 2 * time_step
         # record trajectories for visualization
         real_trajectory['x'].append(obs['x'][0])
         real_trajectory['y'].append(obs['x'][1])
         real_trajectory['z'].append(obs['x'][2])
-        cmd_trajectory['x'].append(cmd_state['x'][0][0])
-        cmd_trajectory['y'].append(cmd_state['x'][1][0])
-        cmd_trajectory['z'].append(cmd_state['x'][2][0])
+        des_trajectory['x'].append(des_state['x'][0][0])
+        des_trajectory['y'].append(des_state['x'][1][0])
+        des_trajectory['z'].append(des_state['x'][2][0])
     
     # Print three required criterions
     print("Tracking performance: ", np.sum(accu_error_pos**2))
@@ -102,4 +102,4 @@ if __name__=="__main__":
     # Visualization
     start_ani = 1
     if (start_ani):
-        visualization(real_trajectory, cmd_trajectory)
+        visualization(real_trajectory, des_trajectory)
