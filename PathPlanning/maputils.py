@@ -35,6 +35,10 @@ class Map:
     self.len += 1
 
   def collision(self,start,end):
+    '''check if the sample point is inside an obstacle'''
+    if (start.all == end.all):
+      if self.idx.count((*start,)) != 0 :
+        return True
     '''find if the ray between start and end collides with obstacles'''
     dist = np.linalg.norm(start-end)
     n = int(dist/self.path_res)

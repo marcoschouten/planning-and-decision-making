@@ -41,6 +41,7 @@ class QuadSim:
     def run(self,ax = None,save = False):
         self.init_plot(ax)
         while self.t < self.Tmax + 2:
+        # while True:
             frame = self.control_loop()
             self.update_plot(frame)
             plt.pause(self.animation_rate)
