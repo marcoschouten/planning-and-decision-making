@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
 
-from PathPlanning import RRTStar, Map, PRM, rrt
+from PathPlanning import RRTStar, Map
+from PathPlanning.prm_star import PRMStar
 from TrajGen import trajGenerator, Helix_waypoints, Circle_waypoints
 from Quadrotor import QuadSim
 import controller
@@ -25,7 +26,7 @@ mapobs = Map(obstacles, bounds, dim=3)
 start = np.array([80, 20, 10])
 goal = np.array([30, 80, 50])
 
-prm = PRM(start=start, goal=goal, Map=mapobs)
+prm = PRMStar(start=start, goal=goal, Map=mapobs)
 
 rrt = RRTStar(start=start, goal=goal,
               Map=mapobs, max_iter=500,

@@ -1,4 +1,4 @@
 from .rrt import RRT
 from .rrt_star import RRTStar
 from .maputils import Map
-from .prm import PRM
+from .prm_star import PRMStar
