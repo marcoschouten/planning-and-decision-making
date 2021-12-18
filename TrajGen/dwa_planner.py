@@ -41,12 +41,9 @@ class dwa_planner:
         pos=self.destate.pos
         vel=self.destate.vel
         collision,_=self.collision_distance(pos,vel)
-        if collision:##################################
+        if collision:
             pos, pos_dot, pos_ddt, jerk=self.sample_vel()
             yaw,yawdot=self.get_yaw(pos_dot[:2])
-            print('pos',pos)
-            print('yaw',yaw)
-            print('yawdot',yawdot)
             # raise NotImplementedError()
             return DesiredState(pos, pos_dot, pos_ddt, jerk, 0, 0)
         self.heading=vel[:2]/LA.norm(vel[:2])
