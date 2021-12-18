@@ -18,9 +18,9 @@ eI = np.zeros(3)
 
 #Nonlinear Controller for trajectory tracking
 def run(state, des_state):
+
     yaw_des = des_state.yaw
     dyaw_des = des_state.yawdot
-
     #current Rotation from body frame to world
     bRw = RPYToRot(*state.rot).T
     #normal vector to body frame

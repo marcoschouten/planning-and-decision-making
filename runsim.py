@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
 
 from PathPlanning import RRTStar, Map
-from TrajGen import trajGenerator, Helix_waypoints, Circle_waypoints
+# from TrajGen import trajGenerator, Helix_waypoints, Circle_waypoints
+from TrajGen import trajOpt, Helix_waypoints, Circle_waypoints,dwa_planner
 from Quadrotor import QuadSim
 import controller
 np.random.seed(8)
@@ -24,6 +25,8 @@ mapobs = Map(obstacles, bounds, dim = 3)
 #plan a path from start to goal
 start = np.array([80,20,10])
 goal = np.array([30,80,80])
+# start = np.array([80,20,10])
+# goal = np.array([60,20,10])
 
 rrt = RRTStar(start = start, goal = goal,
               Map = mapobs, max_iter = 500,
@@ -34,14 +37,18 @@ waypoints, min_cost = rrt.plan()
 
 #scale the waypoints to real dimensions
 waypoints = 0.02*waypoints
-
+print(waypoints)
 #Generate trajectory through waypoints
-traj = trajGenerator(waypoints, max_vel = 10, gamma = 1e6)
-
+# traj = trajGenerator(waypoints,max_vel = 5,gamma = 1e6)
+traj = trajOpt(waypoints,max_vel = 5,mean_vel = 0.8)
 #initialise simulation with given controller and trajectory
-Tmax = traj.TS[-1]
+Tmax = traj.time_list[-1]
 des_state = traj.get_des_state
-sim = QuadSim(controller,des_state,Tmax)
+seg_num= traj.get_seg_num
+local_planner=dwa_planner(des_state(0),des_state(0),mapobs,goal,waypoints)
+update=local_planner.update
+plan=local_planner.plan
+sim = QuadSim(controller,des_state,Tmax,update,plan,seg_num)
 
 #create a figure
 fig = plt.figure()

@@ -39,7 +39,7 @@ class Quadrotor:
         self.state[8] = quat[2]
         self.state[9] = quat[3]
         self.ode = integrate.ode(self.state_dot).set_integrator('vode',nsteps=500,method='bdf')
-
+        self.statedot=np.zeros(13)
     def world_frame(self):
         """ position returns a 3x6 matrix
             where row is [x, y, z] column is m1 m2 m3 m4 origin h
@@ -100,7 +100,7 @@ class Quadrotor:
         state_dot[10] = pqrdot[0]
         state_dot[11] = pqrdot[1]
         state_dot[12] = pqrdot[2]
-
+        self.statedot=state_dot
         return state_dot
 
     def update(self, dt, F, M):
