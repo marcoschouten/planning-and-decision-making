@@ -4,6 +4,10 @@ from collections import namedtuple
 DesiredState = namedtuple('DesiredState', 'pos vel acc jerk yaw yawdot')
 
 def polyder(t, k = 0, order = 10):
+    '''
+    (10th) order polynomial: t**0 + t**1 + ... + t**9
+    k: take k derivative
+    '''
     if k == 'all':
         terms = np.array([polyder(t,k,order) for k in range(1,5)])
     else:

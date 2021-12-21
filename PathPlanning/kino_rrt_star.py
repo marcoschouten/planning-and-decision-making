@@ -1,7 +1,6 @@
 from .rrt import *
 
 class KinoRRTStar(RRT):
-
     def __init__(self, start, goal, Map,
                  max_extend_length=10.0,
                  path_resolution=0.5,
