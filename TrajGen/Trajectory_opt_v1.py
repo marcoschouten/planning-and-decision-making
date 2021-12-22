@@ -16,7 +16,7 @@ from matplotlib import animation
 
 
 class trajOpt:
-    def __init__(self, waypoints, max_vel=5, mean_vel=4.0):
+    def __init__(self, waypoints, Map, max_vel=5, mean_vel=0.5):
         self.waypoints = waypoints
         self.max_vel = max_vel
         self.mean_vel = mean_vel
@@ -25,7 +25,8 @@ class trajOpt:
         len, dim = waypoints.shape
         self.dim = dim
         self.len = len
-        self.TS = np.zeros(self.len)
+        self.Map=Map
+        # self.TS = np.zeros(self.len)
         # self.optimize()
         self.yaw = 0
         self.heading = np.zeros(2)
@@ -79,6 +80,29 @@ class trajOpt:
         self.px_c = px_c
         self.py_c = py_c
         self.pz_c = pz_c
+        self.colli_check()
+        
+    def colli_check(self):
+        T =0
+        collision=False
+        while T< self.time_list[-1]:
+            pos=self.get_des_state(T).pos
+            if self.Map.idx.count((*pos,)) != 0:
+                idx=np.where(T >= self.time_list)[0][-1]
+                print(idx)
+                new_waypoint=(self.waypoints[idx]+self.waypoints[idx+1])/2
+                print(new_waypoint)
+                self.waypoints=np.insert(self.waypoints,idx+1,new_waypoint,axis=0)
+                print(self.waypoints)
+                collision=True
+                T=self.time_list[idx+1]
+            T+=0.025
+        if collision:
+            self.len = self.waypoints.shape[0]
+            self.yaw = 0
+            self.heading = np.zeros(2)
+            self.time_allocation()
+            self.min_snap_traj()
 
     def get_des_state(self, t):
         # print(t)
@@ -123,88 +147,6 @@ class trajOpt:
         jerk = np.array([0, 0, 0]).squeeze()
         # print(DesiredState(pos, pos_dot, pos_ddt, jerk, yaw, yawdot))
         return DesiredState(pos, pos_dot, pos_ddt, jerk, yaw, yawdot)
-    # def get_cost(self,T):
-    #     coeffs,cost = self.MinimizeSnap(T)
-    #     cost = cost + self.gamma*np.sum(T)
-    #     return cost
-
-    # def optimize(self):
-    #     diff = self.waypoints[0:-1] - self.waypoints[1:]
-    #     Tmin = LA.norm(diff,axis = -1)/self.max_vel
-    #     T = optimize.minimize(self.get_cost,Tmin, method="COBYLA",constraints= ({'type': 'ineq', 'fun': lambda T: T-Tmin}))['x']
-
-    #     self.TS[1:] = np.cumsum(T)
-    #     self.coeffs, self.cost = self.MinimizeSnap(T)
-
-    # def MinimizeSnap(self,T):
-    #     unkns = 4*(self.len - 2)
-
-    #     Q = Hessian(T)
-    #     A,B = self.get_constraints(T)
-
-    #     invA = LA.inv(A)
-
-    #     if unkns != 0:
-    #         R = invA.T@Q@invA
-
-    #         Rfp = R[:-unkns,-unkns:]
-    #         Rpp = R[-unkns:,-unkns:]
-
-    #         B[-unkns:,] = -LA.inv(Rpp)@Rfp.T@B[:-unkns,]
-
-    #     P = invA@B
-    #     cost = np.trace(P.T@Q@P)
-
-    #     return P, cost
-
-    # def get_constraints(self,T):
-    #     n = self.len - 1
-    #     o = self.order
-
-    #     A = np.zeros((self.order*n, self.order*n))
-    #     B = np.zeros((self.order*n, self.dim))
-
-    #     B[:n,:] = self.waypoints[ :-1, : ]
-    #     B[n:2*n,:] = self.waypoints[1: , : ]
-
-    #     #waypoints contraints
-    #     for i in range(n):
-    #         A[i, o*i : o*(i+1)] = polyder(0)
-    #         A[i + n, o*i : o*(i+1)] = polyder(T[i])
-
-    #     #continuity contraints
-    #     for i in range(n-1):
-    #         A[2*n + 4*i: 2*n + 4*(i+1), o*i : o*(i+1)] = -polyder(T[i],'all')
-    #         A[2*n + 4*i: 2*n + 4*(i+1), o*(i+1) : o*(i+2)] = polyder(0,'all')
-
-    #     #start and end at rest
-    #     A[6*n - 4 : 6*n, : o] = polyder(0,'all')
-    #     A[6*n : 6*n + 4, -o : ] = polyder(T[-1],'all')
-
-    #     #free variables
-    #     for i in range(1,n):
-    #         A[6*n + 4*i : 6*n + 4*(i+1), o*i : o*(i+1)] = polyder(0,'all')
-
-    #     return A,B
-
-    # def get_des_state(self,t):
-
-    #     if t > self.TS[-1]: t = self.TS[-1] - 0.001
-
-    #     i = np.where(t >= self.TS)[0][-1]
-
-    #     t = t - self.TS[i]
-    #     coeff = (self.coeffs.T)[:,self.order*i:self.order*(i+1)]
-
-    #     pos  = coeff@polyder(t)
-    #     vel  = coeff@polyder(t,1)
-    #     accl = coeff@polyder(t,2)
-    #     jerk = coeff@polyder(t,3)
-
-    #     #set yaw in the direction of velocity
-    #     yaw, yawdot = self.get_yaw(vel[:2])
-
-    #     return DesiredState(pos, vel, accl, jerk, yaw, yawdot)
 
     def get_yaw(self, vel):
         curr_heading = vel/LA.norm(vel)

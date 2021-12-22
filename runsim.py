@@ -39,7 +39,7 @@ waypoints = 0.02*waypoints
 
 # Generate trajectory through waypoints
 # traj = trajGenerator(waypoints,max_vel = 5,gamma = 1e6)
-traj = trajOpt(waypoints, max_vel=5, mean_vel=0.8)
+traj = trajOpt(waypoints, mapobs, max_vel=5, mean_vel=1.0)
 # initialise simulation with given controller and trajectory
 Tmax = traj.time_list[-1]
 des_state = traj.get_des_state
