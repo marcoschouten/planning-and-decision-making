@@ -9,7 +9,7 @@ class dwa_planner:
         self.destate = des_state
         self.state = state
         self.Map = Map
-        self.max_vel = 2.0
+        self.max_vel = 5.0
         self.max_acc = 5.0
         self.sim_time = 0.5
         self.samp_num = 150
@@ -68,14 +68,14 @@ class dwa_planner:
         clearance = np.zeros([self.samp_num, ])
         while i < self.samp_num:
             sampled_point = SphereSampler(self.state.vel, self.max_acc*self.dt, num=1)
-            # print('first sample',sampled_point)
+            print('first sample',LA.norm(sampled_point))
             if LA.norm(sampled_point) < self.max_vel or LA.norm(sampled_point) == self.max_vel:
-                # print('     second sample',sampled_point)
+                print('     second sample',sampled_point)
                 collision, distance = self.collision_distance(
                     self.state.pos, sampled_point)
-                print(distance)
+                # print(distance)
                 if not collision:
-                    # print('         third sample',sampled_point)
+                    print('         third sample',sampled_point)
                     sampled_vel[i] = sampled_point
                     clearance[i] = distance
                     i += 1

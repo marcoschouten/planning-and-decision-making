@@ -29,6 +29,7 @@ def run(state, des_state):
     #position and velocity errors
     ep = des_state.pos - state.pos
     ev = des_state.vel - state.vel
+    # print('velocity',np.linalg.norm(des_state.vel))
 
     #command acceleration
     commd_acc = kp*ep + kv*ev + des_state.acc

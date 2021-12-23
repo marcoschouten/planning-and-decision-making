@@ -9,28 +9,27 @@ import numpy as np
 from numpy import linalg as LA
 from scipy import optimize
 from .trajutils import *
-import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
-from matplotlib import animation
+from scipy import optimize
+
 # from cvxopt import matrix, solvers
 
 
 class trajOpt:
-    def __init__(self, waypoints, Map, max_vel=5, mean_vel=0.5):
+    def __init__(self, waypoints, Map, max_vel=1.5, gamma=1e4):
         self.waypoints = waypoints
         self.max_vel = max_vel
-        self.mean_vel = mean_vel
-        # self.gamma = gamma
-        # self.order = 10
+        self.mean_vel = 1.0
         len, dim = waypoints.shape
         self.dim = dim
         self.len = len
         self.Map=Map
-        # self.TS = np.zeros(self.len)
+        self.gamma=gamma
+        self.time_list = np.zeros(self.len)
         # self.optimize()
         self.yaw = 0
         self.heading = np.zeros(2)
-        self.time_allocation()
+        self.optimize()
+        # self.time_allocation()
         self.min_snap_traj()
 
     def time_allocation(self):  # Assign time interval to each segments
@@ -43,15 +42,37 @@ class trajOpt:
         displacement_vec = position[1:]-position[:-1]
         # distance verctors between each point
         displacement = np.linalg.norm(displacement_vec, axis=1, keepdims=True)
-        distances = displacement  # Weighted sum of distances in configuration space
         # print('distances',distances)
         T = np.sum(displacement)/self.mean_vel  # Overall time
-        t = T*distances/np.sum(distances)  # Time spent on each segment
+        t = T*displacement/np.sum(displacement)  # Time spent on each segment
         # print('t',t)
         time_list = np.zeros([self.len])
         for i in range(1, self.waypoints.shape[0]):
             time_list[i] = time_list[i-1]+t[i-1]
         self.time_list = time_list
+        
+    def get_cost(self, T):
+        cost = self.cost_cal(T)
+        cost = cost + self.gamma*np.sum(T)
+        print('cost',cost)
+        return cost
+    
+    def cost_cal(self,T):
+        self.time_list[1:] = np.cumsum(T)
+        self.min_snap_traj()
+        return self.cost
+    
+    def optimize(self):
+        position = self.waypoints[:, :3]
+        displacement_vec = position[1:]-position[:-1]
+        displacement = np.linalg.norm(displacement_vec, axis=1)
+
+        Tmin = displacement/self.max_vel
+        T = optimize.minimize(self.get_cost, Tmin, method="COBYLA", constraints=(
+            {'type': 'ineq', 'fun': lambda T: T-Tmin}))['x']
+
+        self.time_list[1:] = np.cumsum(T)
+
 
     def min_snap_traj(self):
         time_list = self.time_list.squeeze()
@@ -60,19 +81,19 @@ class trajOpt:
         z = self.waypoints[:, 2].squeeze()
         # P=matrix(np.zeros([(self.time_list.shape[0]-1)*8]))
         # Optimization for X direction
-        # Qx=get_Q(self.time_list,x)
+        Qx=get_Q(self.time_list,x)
         # Aeqx,Beqx=get_eq_const(time_list,x)
         # solx=solvers.qp(Qx, P, A= Aeqx, b=Beqx)
         # print('x is',solx['status'])
         px_c, _, _ = cls_form(time_list, x)
         # Optimization for Y direction
-        # Qy=get_Q(time_list,y)
+        Qy=get_Q(time_list,y)
         # Aeqy,Beqy=get_eq_const(time_list,y)
         # soly=solvers.qp(Qy, P, A= Aeqy, b=Beqy)
         # print('y is',soly['status'])
         py_c, _, _ = cls_form(time_list, y)
         # Optimization for Z direction
-        # Qz=get_Q(time_list,z)
+        Qz=get_Q(time_list,z)
         # Aeqz,Beqz=get_eq_const(time_list,z)
         # solz=solvers.qp(Qz, P, A= Aeqz, b=Beqz)
         # print('z is',solz['status'])
@@ -80,7 +101,10 @@ class trajOpt:
         self.px_c = px_c
         self.py_c = py_c
         self.pz_c = pz_c
+        self.cost=np.trace(px_c.T@Qx@px_c+py_c.T@Qy@py_c+pz_c.T@Qz@pz_c)
+        # print('cost',self.cost+self.gamma*self.time_list[-1])
         self.colli_check()
+
         
     def colli_check(self):
         T =0
@@ -101,7 +125,8 @@ class trajOpt:
             self.len = self.waypoints.shape[0]
             self.yaw = 0
             self.heading = np.zeros(2)
-            self.time_allocation()
+            self.optimize()
+            # self.time_allocation()
             self.min_snap_traj()
 
     def get_des_state(self, t):
@@ -170,21 +195,7 @@ class trajOpt:
             t = self.time_list[-1] - 0.001
         i = np.where(t >= self.time_list)[0][-1]
         return i
-    # def collision_optimize(self,Map):
-    #     check = True
-    #     while not check:
-    #         self.optimize()
-    #         check = self.check_collision(Map)
-    #
-    # def check_collision(self,Map):
-    #     for t in np.linspace(0,self.TS[-1],1000):
-    #         pos = self.get_des_state(t).pos
-    #         if Map.idx.count((*pos,)) != 0:
-    #             i = np.where(t >= self.TS)[0][-1]
-    #             new_waypoint = (waypoints[i,:]+waypoints[i+1,:])/2
-    #             np.insert(self.waypoints,i,new_waypoint)
-    #             return True
-    #     return False
+
 
 
 def cls_form(time_list, x):
@@ -269,3 +280,24 @@ def cls_form(time_list, x):
         Beq[1+seg_num*6+i*2] = x[i+1]
     p = np.linalg.solve(Aeq, Beq)
     return p, Aeq, Beq
+def get_Q(time_list,x):
+    seg_num=x.shape[0]-1
+    Q=np.zeros([seg_num*8,seg_num*8])
+    for i in range(seg_num):
+        Q[i*8:i*8+8,i*8:i*8+8]=get_subq(time_list[i],time_list[i+1])
+    return Q
+def get_subq(T1,T2):
+    subq=np.zeros([8,8]) 
+    para_vec=np.array([[np.math.factorial(4)],[np.math.factorial(5)/np.math.factorial(1)],
+                       [np.math.factorial(6)/np.math.factorial(2)],[np.math.factorial(7)/np.math.factorial(3)]])
+    para_mat=np.dot(para_vec,para_vec.T)
+    T2_mat=np.array([[[T2],[T2**2/2],[T2**3/3],[T2**4/4]],
+                     [[T2**2/2],[T2**3/3],[T2**4/4],[T2**5/5]],
+                     [[T2**3/3],[T2**4/4],[T2**5/5],[T2**6/6]],
+                     [[T2**4/4],[T2**5/5],[T2**6/6],[T2**7/7]]]).squeeze()
+    T1_mat=np.array([[[T1],[T1**2/2],[T1**3/3],[T1**4/4]],
+                     [[T1**2/2],[T1**3/3],[T1**4/4],[T1**5/5]],
+                     [[T1**3/3],[T1**4/4],[T1**5/5],[T1**6/6]],
+                     [[T1**4/4],[T1**5/5],[T1**6/6],[T1**7/7]]]).squeeze()
+    subq[4:,4:]=para_mat*(T2_mat-T1_mat)
+    return subq

@@ -5,7 +5,7 @@ from .trajutils import *
 
 
 class trajGenerator:
-    def __init__(self, waypoints, max_vel=5, gamma=100):
+    def __init__(self, waypoints, max_vel=0.8, gamma=100):
         self.waypoints = waypoints
         self.max_vel = max_vel
         self.gamma = gamma
