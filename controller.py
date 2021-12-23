@@ -3,8 +3,8 @@ from math import sin, cos
 from Quadrotor import params
 from Quadrotor.utils import RPYToRot,vee
 
-kv = np.array([10,10,10]);
-kp = np.array([30,30,30]);
+kv = np.array([10,10,10])
+kp = np.array([30,30,30])
 
 kR = np.array([5,5,5])
 kW = np.array([0.05,0.05,0.1])

@@ -8,7 +8,7 @@ class Node:
         self.p = np.array(coords)
         self.parent = None
         self.cost = np.inf
-
+        
     def __len__(self):
         return len(self.p)
 
