@@ -84,25 +84,25 @@ class PRMStar():
             ax.plot(*np.array(path).T, '-',
                     color=(0.9, 0.2, 0.5, 0.8), zorder=5)
     
-    def draw_graph(self, ax):
+    def draw_graph(self, ax, scale_factor):
         '''draw the path if available'''
         self.build_graph()
         xs = []
         ys = []
         zs = []
         for node in list(self.graph.nodes):
-            xs.append(0.02*node.p[0])
-            ys.append(0.02*node.p[1])
-            zs.append(0.02*node.p[2])
+            xs.append(scale_factor*node.p[0])
+            ys.append(scale_factor*node.p[1])
+            zs.append(scale_factor*node.p[2])
         ax.scatter(xs, ys, zs, marker='o', s=1)
 
         for edge in list(self.graph.edges):
-            x1 = 0.02*edge[0].p[0]
-            x2 = 0.02*edge[1].p[0]
-            y1 = 0.02*edge[0].p[1]
-            y2 = 0.02*edge[1].p[1]
-            z1 = 0.02*edge[0].p[2]
-            z2 = 0.02*edge[1].p[2]
+            x1 = scale_factor*edge[0].p[0]
+            x2 = scale_factor*edge[1].p[0]
+            y1 = scale_factor*edge[0].p[1]
+            y2 = scale_factor*edge[1].p[1]
+            z1 = scale_factor*edge[0].p[2]
+            z2 = scale_factor*edge[1].p[2]
             ax.plot([x1, x2], [y1, y2], [z1, z2], color='b', linewidth=0.1)
         
 

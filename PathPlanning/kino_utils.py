@@ -42,8 +42,8 @@ class linearized_qued_model:
 class Node_with_traj(Node):
     def __init__(self, coords):
         super().__init__(coords)
-        self.vel = self.sample(bounds=np.array([-100, 100]))
-        self.acc = self.sample(bounds=np.array([-100, 100]))
+        self.vel = self.sample(bounds=np.array([-50, 50]))
+        self.acc = self.sample(bounds=np.array([-50, 50]))
         self.trajectories = {}
         self.T = 1
 
@@ -95,7 +95,7 @@ class trajGenerator:
         return Tmax
     
     def get_des_state(self, t):
-        for i in range(len(self.trajectory_segments)-1, 0, -1):
+        for i in range(len(self.trajectory_segments)-1, -1, -1):
             trajectory_segment = self.trajectory_segments[i]
             if t > trajectory_segment.T:
                 t -= trajectory_segment.T
@@ -104,13 +104,13 @@ class trajGenerator:
             break
         
         # print(coeff)
-        pos = coeff @ polyder(t, order=6) * 0.02
-        vel = coeff @ polyder(t, 1, order=6) * 0.02
-        accl = coeff @ polyder(t, 2, order=6) * 0.02
-        jerk = coeff @ polyder(t, 3, order=6) * 0.02
+        pos = coeff @ polyder(t, order=6)
+        vel = coeff @ polyder(t, 1, order=6)
+        accl = coeff @ polyder(t, 2, order=6)
+        jerk = coeff @ polyder(t, 3, order=6)
         # set yaw in the direction of velocity
         yaw, yawdot = self.get_yaw(vel[:2])
-        print(pos)
+        # print(pos)
         return DesiredState(pos, vel, accl, jerk, yaw, yawdot)
 
 

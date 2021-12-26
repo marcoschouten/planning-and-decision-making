@@ -29,11 +29,11 @@ class KinoRRTStar(RRT):
                 self.add(new_node)
         # Return traj if it exists
         if not self.goal.parent:
-            print("no trajectory found!!")
-            traj = None
+            raise ValueError('No trajectory found!')
         else:
             traj = trajGenerator(self.final_traj())
-        return traj
+            path = self.final_path()
+        return traj, path
 
     def add(self, new_node):
         near_nodes = self.near_nodes(new_node)
@@ -59,8 +59,8 @@ class KinoRRTStar(RRT):
         """
         if np.random.rand() > self.goal_sample_rate:
             rnd = self.sample()
-            while self.map.collision(rnd, rnd): #in case the sampled point is in obstacle
-                rnd = self.sample()
+            # while self.map.collision(rnd, rnd): #in case the sampled point is in obstacle
+            #     rnd = self.sample()
             return Node_with_traj(rnd)
         else:
             return self.goal
@@ -81,13 +81,15 @@ class KinoRRTStar(RRT):
                     new_node.parent = parent
                     new_node.cost = cost
 
-    def steer(self, from_node, to_node, T_max=2):
+    def steer(self, from_node, to_node, T_max=30):
         if str(from_node.p) in to_node.trajectories:
             return to_node.trajectories[str(from_node.p)]
         T = (self.dist(from_node, to_node) /
-             self.dist(self.start, self.goal)) * T_max 
-        if T == 0:
-            T = 1
+             self.dist(self.start, self.goal)) * T_max
+        if T < 1e-3:
+            coeff = [np.zeros(6) for i in range(3)]
+            cost = np.inf
+            return Trajectory_segment(coeff, cost, T)
         coeff = []
         cost = 0
         for idx in range(3):
@@ -105,7 +107,7 @@ class KinoRRTStar(RRT):
                           from_node.acc[idx],
                           to_node.acc[idx]]).reshape(-1, 1)
             coeff_1d = np.linalg.solve(A, b)
-            coeff.append(coeff_1d.flatten())
+            coeff.append(np.flip(coeff_1d.flatten()))
             # cost: integrate jerk**2 over period T
             c3 = coeff_1d[3]
             c4 = coeff_1d[4]
@@ -123,7 +125,7 @@ class KinoRRTStar(RRT):
         for t in np.linspace(0, traj_segment.T, 1000):
             pos = traj_segment.get_pos(t)
             if self.map.idx.count((*pos,)) != 0:
-                print("collide: ", (*pos,))
+                print("collision happend: ", nearest_node, new_node)
                 return True
         return False
 
@@ -151,12 +153,16 @@ class KinoRRTStar(RRT):
                 self.propagate_cost_to_leaves(node)
 
     def final_traj(self):
-        trajectory_segments = [] # last in first out
+        trajectory_segments = []
         node = self.goal
-        trajectory_segments.append(node.trajectories[str(node.parent.p)])
         if (node.p == node.parent.p).all():
-            node = node.parent
+                node = node.parent
         while node.parent:
-            trajectory_segments.append(node.trajectories[str(node.parent.p)])
+            # print("\nseg stored in: ", node)
+            seg = node.trajectories[str(node.parent.p)]
+            trajectory_segments.append(seg)
             node = node.parent
+            # print("coeff: ", seg.coeff)
+            # print("seg starts from: ", seg.get_pos(0))
+            # print("seg ends at: ", seg.get_pos(seg.T))
         return trajectory_segments

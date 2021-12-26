@@ -93,15 +93,10 @@ class trajGenerator:
 
         t = t - self.TS[i]
         coeff = (self.coeffs.T)[:, self.order*i:self.order*(i+1)]
-        print(coeff)
         pos = coeff@polyder(t)
         vel = coeff@polyder(t, 1)
         accl = coeff@polyder(t, 2)
         jerk = coeff@polyder(t, 3)
-        
-        print(coeff)
-        print(t)
-        print(vel)
         
         # set yaw in the direction of velocity
         yaw, yawdot = self.get_yaw(vel[:2])
