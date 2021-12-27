@@ -54,7 +54,7 @@ class trajOpt:
     def get_cost(self, T):
         cost = self.cost_cal(T)
         cost = cost + self.gamma*np.sum(T)
-        print('cost',cost)
+        # print('cost',cost)
         return cost
     
     def cost_cal(self,T):
@@ -108,17 +108,19 @@ class trajOpt:
         
     def colli_check(self):
         T =0
+        colli_num=0
         collision=False
         while T< self.time_list[-1]:
             pos=self.get_des_state(T).pos
             if self.Map.idx.count((*pos,)) != 0:
-                idx=np.where(T >= self.time_list)[0][-1]
-                print(idx)
+                idx=np.where(T >= self.time_list)[0][-1]+colli_num
+                # print(idx)
                 new_waypoint=(self.waypoints[idx]+self.waypoints[idx+1])/2
-                print(new_waypoint)
+                # print(new_waypoint)
                 self.waypoints=np.insert(self.waypoints,idx+1,new_waypoint,axis=0)
-                print(self.waypoints)
+                # print(self.waypoints)
                 collision=True
+                colli_num+=1
                 T=self.time_list[idx+1]
             T+=0.025
         if collision:

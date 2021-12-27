@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
-
+from PathPlanning.maputils import *
 from PathPlanning import RRTStar, Map
-from TrajGen import trajOpt, Helix_waypoints, Circle_waypoints, dwa_planner, trajGenerator
+from TrajGen import trajOpt, Helix_waypoints, Circle_waypoints, dwa_planner, trajGenerator, Bs_trajOpt
 from Quadrotor import QuadSim
 import controller
 np.random.seed(8)
@@ -16,10 +16,14 @@ obstacles = [[-5, 25, 0, 20, 35, 60],
              [-5, 65, 0, 30, 70, 100],
              [70, 50, 0, 80, 80, 100]]
 
+inflated_obs=map_inflate(obstacles,inf_dis=1)
+
 # limits on map dimensions
 bounds = np.array([0, 100])
 # create map with obstacles
-mapobs = Map(obstacles, bounds, dim=3)
+mapobs = Map(obstacles , bounds, dim=3)
+mapobs_inf = Map(inflated_obs , bounds, dim=3)
+
 
 # plan a path from start to goal
 start = np.array([80, 20, 10])
@@ -28,7 +32,7 @@ goal = np.array([30, 80, 80])
 # goal = np.array([60,20,10])
 
 rrt = RRTStar(start=start, goal=goal,
-              Map=mapobs, max_iter=500,
+              Map=mapobs_inf, max_iter=500,
               goal_sample_rate=0.1)
 
 waypoints, min_cost = rrt.plan()
@@ -39,7 +43,8 @@ waypoints = 0.02*waypoints
 
 # Generate trajectory through waypoints
 # traj = trajGenerator(waypoints,max_vel = 5,gamma = 1e6)
-traj = trajOpt(waypoints, mapobs, max_vel=2.0, gamma=1e6)
+# traj = trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6)
+traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6)
 # initialise simulation with given controller and trajectory
 Tmax = traj.time_list[-1]
 des_state = traj.get_des_state

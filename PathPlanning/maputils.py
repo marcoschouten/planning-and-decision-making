@@ -88,3 +88,10 @@ def cuboid_data(box):
          [0, 0, h, h, 0],
          [0, 0, h, h, 0]]
     return box[0] + np.array(x), box[1] + np.array(y), box[2] + np.array(z)
+
+def map_inflate(obstacles,inf_dis):
+    obs=np.array(obstacles)
+    obs[:,3:]=obs[:,3:]+inf_dis
+    obs[:,:3]=obs[:,:3]-inf_dis
+    obs_inf=np.clip(obs,-5,100)
+    return list(obs_inf)
