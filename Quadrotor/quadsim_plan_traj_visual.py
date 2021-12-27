@@ -8,7 +8,7 @@ class QuadSim_plan_traj_visual(QuadSim):
                  control_frequency=200):
         super().__init__(controller, des_state, Tmax, pos=pos, attitude=attitude,
                          animation_frequency=animation_frequency, control_frequency=control_frequency)
-        self.planned_pos_history = deque(maxlen=500) # make the tail eliminate
+        self.planned_pos_history = [] # make the tail eliminate
         
     def init_plot(self, ax=None):
         if ax is None:

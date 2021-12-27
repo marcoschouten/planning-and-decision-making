@@ -1,24 +1,28 @@
 from .kino_utils import *
 from .rrt import *
-
+import time
 
 class KinoRRTStar(RRT):
     def __init__(self, start, goal, Map,
                  max_extend_length=10.0,
                  path_resolution=0.5,
-                 goal_sample_rate=0.5,
+                 goal_sample_rate=0.01,
                  max_iter=100):
         super().__init__(start, goal, Map, max_extend_length,
                          path_resolution, goal_sample_rate, max_iter)
         self.final_nodes = []
         self.start = Node_with_traj(start)
         self.goal = Node_with_traj(goal)
+        # for i in [self.start, self.goal]:
+        #     i.vel = np.zeros(3)
+        #     i.acc = np.zeros(3)
 
     def plan(self):
         """Plans the path from start to goal while avoiding obstacles"""
         self.start.cost = 0
         self.tree.add(self.start)
         for i in range(self.max_iter):
+            self.start_time = time.time()
             # Generate a random node (rnd_node)
             new_node = self.get_random_node()
             # Get nearest node
@@ -41,6 +45,7 @@ class KinoRRTStar(RRT):
         self.choose_parent(near_nodes, new_node)
         # add the new_node to tree
         self.tree.add(new_node)
+        print("new node added:", new_node)
         # # Rewire the nodes in the proximity of new_node if it improves their costs
         # self.rewire(new_node, near_nodes)
         # # check if it is in close proximity to the goal
@@ -81,7 +86,7 @@ class KinoRRTStar(RRT):
                     new_node.parent = parent
                     new_node.cost = cost
 
-    def steer(self, from_node, to_node, T_max=30):
+    def steer(self, from_node, to_node, T_max=10):
         if str(from_node.p) in to_node.trajectories:
             return to_node.trajectories[str(from_node.p)]
         T = (self.dist(from_node, to_node) /
@@ -106,17 +111,15 @@ class KinoRRTStar(RRT):
                           to_node.vel[idx],
                           from_node.acc[idx],
                           to_node.acc[idx]]).reshape(-1, 1)
+
             coeff_1d = np.linalg.solve(A, b)
             coeff.append(np.flip(coeff_1d.flatten()))
-            # cost: integrate jerk**2 over period T
-            c3 = coeff_1d[3]
-            c4 = coeff_1d[4]
-            c5 = coeff_1d[5]
-            cost += (720*c5**2*T**5 + 720*c4*c5*T**4 + 240*c3*c5*T**2 + 192*c4**2*T**3\
-                + 144*c3*c4*T**2 + 36*c3**2*T) * 1e-10
+            # cost: integrate snap**2 over period T
+            c4 = coeff_1d[1]
+            c5 = coeff_1d[0]
+            cost += (14400/3*c5**2*T**3 + 2880*c4*c5*T**2 + 576*c4**2*T)
         # Store the trajectory segment inside to_node
         to_node.trajectories[str(from_node.p)] = Trajectory_segment(coeff, cost, T)
-        print(from_node, to_node, "cost seg: ", cost)
         return to_node.trajectories[str(from_node.p)]
 
     def collision(self, nearest_node, new_node):
@@ -158,11 +161,22 @@ class KinoRRTStar(RRT):
         if (node.p == node.parent.p).all():
                 node = node.parent
         while node.parent:
-            # print("\nseg stored in: ", node)
             seg = node.trajectories[str(node.parent.p)]
             trajectory_segments.append(seg)
+            print("\n----------------------------------------")
+            print("seg stored in: ", node)
+            print("coeff: ", seg.coeff)
+            print("seg starts from: ", seg.get_pos(0), "vel: ", node.parent.vel, "acc: ", node.parent.acc)
+            print("seg ends at: ", seg.get_pos(seg.T), "vel: ", node.vel, "acc: ", node.acc)
+            print("----------------------------------------")
             node = node.parent
-            # print("coeff: ", seg.coeff)
-            # print("seg starts from: ", seg.get_pos(0))
-            # print("seg ends at: ", seg.get_pos(seg.T))
+        # raise ValueError("planned finished")
         return trajectory_segments
+    
+    def draw_path(self, ax, path):
+        '''draw the path if available'''
+        if path is None:
+            print("path not available")
+        else:
+            ax.plot(*np.array(path).T, '-',
+                    color='b', zorder=5)

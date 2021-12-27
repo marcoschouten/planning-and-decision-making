@@ -42,8 +42,9 @@ class linearized_qued_model:
 class Node_with_traj(Node):
     def __init__(self, coords):
         super().__init__(coords)
-        self.vel = self.sample(bounds=np.array([-50, 50]))
-        self.acc = self.sample(bounds=np.array([-50, 50]))
+        self.vel = self.sample(bounds=np.array([-3, 3]))
+        self.acc = self.sample(bounds=np.array([-1, 1]))
+        self.jerk = self.sample(bounds=np.array([-1, 1]))
         self.trajectories = {}
         self.T = 1
 
