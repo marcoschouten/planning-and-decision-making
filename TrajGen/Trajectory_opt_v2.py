@@ -444,3 +444,11 @@ def gen_limits(box):
     max_y,min_y=max(box[1],box[4]),min(box[1],box[4])
     max_z,min_z=max(box[2],box[5]),min(box[2],box[5])
     return np.array([[max_x,min_X],[max_y,min_y],[max_z,min_z]])    
+
+def control_p(n):
+    if n==0:
+        return np.array([1])
+    else:
+        temp=np.append(control_p(n-1),0)
+        temp[1:]=temp[1:]-temp[:-1]
+        return temp
