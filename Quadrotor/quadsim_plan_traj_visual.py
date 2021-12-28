@@ -1,5 +1,5 @@
 from .quadsim import *
-
+from numpy import linalg as LA
 
 class QuadSim_plan_traj_visual(QuadSim):
     def __init__(self, controller, des_state, Tmax,
@@ -38,10 +38,13 @@ class QuadSim_plan_traj_visual(QuadSim):
         
         des_state = self.des_state(self.t)
         self.planned_pos_history.append(des_state.pos)
-        print("planned pos: ", des_state.pos)
+        print("pos: ", des_state.pos, "vel: ", des_state.vel, "acc: ", des_state.acc)
         history = np.array(self.planned_pos_history)
         self.lines[-2].set_data(history[:, 0], history[:, 1])
         self.lines[-2].set_3d_properties(history[:, -1])
+        
+        if LA.norm(self.pos_history[-1] - des_state.pos) > 5:
+            raise ValueError("Out of control!")
         
     def run(self, ax=None, save=False):
         self.init_plot(ax)

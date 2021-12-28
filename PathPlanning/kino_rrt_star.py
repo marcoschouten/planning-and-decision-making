@@ -1,3 +1,4 @@
+from numpy import sqrt
 from .kino_utils import *
 from .rrt import *
 import time
@@ -6,7 +7,7 @@ class KinoRRTStar(RRT):
     def __init__(self, start, goal, Map,
                  max_extend_length=10.0,
                  path_resolution=0.5,
-                 goal_sample_rate=0.01,
+                 goal_sample_rate=0.05,
                  max_iter=100):
         super().__init__(start, goal, Map, max_extend_length,
                          path_resolution, goal_sample_rate, max_iter)
@@ -95,6 +96,7 @@ class KinoRRTStar(RRT):
             coeff = [np.zeros(6) for i in range(3)]
             cost = np.inf
             return Trajectory_segment(coeff, cost, T)
+        from_node.vel, to_node.vel = self.sample_vel(from_node, to_node)
         coeff = []
         cost = 0
         for idx in range(3):
@@ -117,11 +119,32 @@ class KinoRRTStar(RRT):
             # cost: integrate snap**2 over period T
             c4 = coeff_1d[1]
             c5 = coeff_1d[0]
-            cost += (14400/3*c5**2*T**3 + 2880*c4*c5*T**2 + 576*c4**2*T)
+            cost += (8*c5**2*T**3 + 5*c4*c5*T**2 + c4**2*T)
         # Store the trajectory segment inside to_node
         to_node.trajectories[str(from_node.p)] = Trajectory_segment(coeff, cost, T)
         return to_node.trajectories[str(from_node.p)]
 
+    def sample_vel(self, from_node, to_node):
+        """Sample velcity in a cone"""
+        pos1 = from_node.p
+        pos2 = to_node.p
+        direc_pos = (pos2 - pos1) / np.sqrt(np.sum((pos2 - pos1)**2))
+        vel_list = []
+        for i in range(2):
+            vel = self.sample(bounds=np.array([-5,5]))
+            direc_vel = vel / np.sqrt(np.sum((vel)**2))
+            while ((direc_vel.T @ direc_pos) < 0.8):
+                vel = self.sample(bounds=np.array([-5,5]))
+                direc_vel = vel / np.sqrt(np.sum((vel)**2))
+            vel_list.append(vel)
+        return vel_list
+    
+    def sample(self, bounds=np.array([0,100])):
+        # Sample random point inside boundaries
+        lower, upper = bounds
+        # Return a 3d array
+        return lower + np.random.rand(3)*(upper - lower)
+    
     def collision(self, nearest_node, new_node):
         '''If collide, return True. Otherwise, return False'''
         traj_segment = self.steer(nearest_node, new_node)
@@ -166,8 +189,8 @@ class KinoRRTStar(RRT):
             print("\n----------------------------------------")
             print("seg stored in: ", node)
             print("coeff: ", seg.coeff)
-            print("seg starts from: ", seg.get_pos(0), "vel: ", node.parent.vel, "acc: ", node.parent.acc)
-            print("seg ends at: ", seg.get_pos(seg.T), "vel: ", node.vel, "acc: ", node.acc)
+            print("seg starts from: ", seg.get_pos(0))
+            print("seg ends at: ", seg.get_pos(seg.T))
             print("----------------------------------------")
             node = node.parent
         # raise ValueError("planned finished")

@@ -103,7 +103,7 @@ def run_hover(state, des_state, dt):
     #desired angular velocity
     omega_des = np.array([0,0,0])
     #angular velocity error
-    eW = omega_des - state.omega;
+    eW = omega_des - state.omega
 
     #moment
     M = np.array([kR*eR + kW*eW]).T

@@ -26,9 +26,7 @@ obstacles = [[-5, 25, 0, 20, 35, 60],
              [45, 75, 0, 55, 85, 100],
              [-5, 65, 0, 30, 70, 100],
              [70, 50, 0, 80, 80, 100]]
-obstacles = [[-5, 25, 0, 20, 35, 60],
-             [30, 25, 0, 55, 35, 100],
-             [45, 35, 0, 55, 60, 60]]
+
 bounds = np.array([0, 100]) # limits on map dimensions
 mapobs = Map(obstacles, bounds, dim=3) # create map with obstacles
 mapobs.plotobs(ax, scale=scale_factor) # plot obstacles
