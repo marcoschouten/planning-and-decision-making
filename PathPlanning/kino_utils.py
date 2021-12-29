@@ -5,6 +5,16 @@ from numpy import linalg as LA
 
 DesiredState = namedtuple('DesiredState', 'pos vel acc jerk yaw yawdot')
 
+def polyder(t, k=0, order=6):
+    '''
+    (10th) order polynomial: t**0 + t**1 + ... + t**9
+    k: take k derivative
+    '''
+    terms = np.zeros(order)
+    coeffs = np.polyder([1]*order, k)[::-1]
+    pows = t**np.arange(0, order-k, 1)
+    terms[k:] = coeffs*pows
+    return terms
 
 class linearized_qued_model:
     def __init__(self):
@@ -42,30 +52,9 @@ class linearized_qued_model:
 class Node_with_traj(Node):
     def __init__(self, coords):
         super().__init__(coords)
-        # self.vel = self.sample(bounds=np.array([-3, 3]))
-        self.acc = self.sample(bounds=np.array([-1, 1]))
+        self.vel = 0
         self.trajectories = {}
         self.T = 1
-
-    def sample(self, bounds=np.array([-10, 10])):
-        # Sample random point inside boundaries
-        # TODO bounds are determined in runsim.py, here hardcoded
-        lower, upper = bounds
-        # Return a 3d array
-        return lower + np.random.rand(3)*(upper - lower)
-
-
-def polyder(t, k=0, order=6):
-    '''
-    (10th) order polynomial: t**0 + t**1 + ... + t**9
-    k: take k derivative
-    '''
-    terms = np.zeros(order)
-    coeffs = np.polyder([1]*order, k)[::-1]
-    pows = t**np.arange(0, order-k, 1)
-    terms[k:] = coeffs*pows
-    return terms
-
 
 class Trajectory_segment:
     def __init__(self, coeff, cost, T):

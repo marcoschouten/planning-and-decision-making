@@ -43,10 +43,11 @@ class QuadSim_plan_traj_visual(QuadSim):
         self.lines[-2].set_data(history[:, 0], history[:, 1])
         self.lines[-2].set_3d_properties(history[:, -1])
         
-        if LA.norm(self.pos_history[-1] - des_state.pos) > 5:
-            raise ValueError("Out of control!")
+        if LA.norm(self.pos_history[-1] - des_state.pos) > 20:
+            # raise ValueError("Out of control!")
+            pass
         
-    def run(self, ax=None, save=False):
+    def run(self, ax=None, save=True):
         self.init_plot(ax)
         while self.t < self.Tmax + 20:
             frame = self.control_loop()

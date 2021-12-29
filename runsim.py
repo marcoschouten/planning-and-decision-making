@@ -24,7 +24,6 @@ obstacles = [[-5, 25, 0, 20, 35, 60],
              [30, 25, 0, 55, 35, 100],
              [45, 35, 0, 55, 60, 60],
              [45, 75, 0, 55, 85, 100],
-             [-5, 65, 0, 30, 70, 100],
              [70, 50, 0, 80, 80, 100]]
 
 bounds = np.array([0, 100]) # limits on map dimensions
@@ -68,7 +67,7 @@ if solution == "prm":
 # Kinodynamics RRT*
 if solution == "kino_rrt":
     kino_rrt = KinoRRTStar(start=start, goal=goal,
-                Map=mapobs, max_iter=200)
+                Map=mapobs, max_iter=100)
     traj, waypoints = kino_rrt.plan()
     print("waypoints: ", waypoints)
     Tmax = traj.get_Tmax()
