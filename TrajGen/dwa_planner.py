@@ -10,7 +10,7 @@ class dwa_planner:
         self.state = state
         self.Map = Map
         self.max_vel = 5.0
-        self.max_acc = 5.0
+        self.max_acc = 20.0
         self.sim_time = 0.5
         self.samp_num = 150
         self.segnum = 0

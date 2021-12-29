@@ -27,10 +27,12 @@ mapobs_inf = Map(inflated_obs , bounds, dim=3)
 
 # plan a path from start to goal
 start = np.array([80, 20, 10])
-goal = np.array([30, 80, 80])
+# start = np.array([30, 80, 20])
+goal = np.array([10, 80, 80])
 # start = np.array([80,20,10])
 # goal = np.array([60,20,10])
-
+if mapobs_inf.idx.count((*goal,)) != 0:
+    raise NotImplementedError()
 rrt = RRTStar(start=start, goal=goal,
               Map=mapobs_inf, max_iter=500,
               goal_sample_rate=0.1)
@@ -43,17 +45,17 @@ waypoints = 0.02*waypoints
 
 # Generate trajectory through waypoints
 # traj = trajGenerator(waypoints,max_vel = 5,gamma = 1e6)
-# traj = trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6)
-traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6)
+traj = trajOpt(waypoints, mapobs_inf, max_vel=1.5, gamma=1e6)
+# traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6)
 # initialise simulation with given controller and trajectory
 Tmax = traj.time_list[-1]
 des_state = traj.get_des_state
-seg_num = traj.get_seg_num
-local_planner = dwa_planner(
-    des_state(0), des_state(0), mapobs, goal, waypoints)
-update = local_planner.update
-plan = local_planner.plan
-sim = QuadSim(controller, des_state, Tmax, update, plan, seg_num)
+
+# local_planner = dwa_planner(
+#     des_state(0), des_state(0), mapobs, goal, waypoints)
+# update = local_planner.update
+# plan = local_planner.plan
+sim = QuadSim(controller, des_state, Tmax)
 
 # create a figure
 fig = plt.figure()

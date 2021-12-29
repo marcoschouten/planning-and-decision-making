@@ -28,9 +28,13 @@ class trajOpt:
         # self.optimize()
         self.yaw = 0
         self.heading = np.zeros(2)
-        self.optimize()
-        # self.time_allocation()
+        self.time_allocation()
         self.min_snap_traj()
+        # self.optimize()
+        # print('optimization finished')
+        # self.min_snap_traj()
+        print('Overall time is',self.time_list[-1])
+        input()
 
     def time_allocation(self):  # Assign time interval to each segments
         # waypoints are the vertices of the path
@@ -58,7 +62,7 @@ class trajOpt:
         return cost
     
     def cost_cal(self,T):
-        self.time_list[1:] = np.cumsum(T)
+        self.time_list= np.append(np.zeros([1,]),np.cumsum(T))
         self.min_snap_traj()
         return self.cost
     
@@ -76,6 +80,7 @@ class trajOpt:
 
     def min_snap_traj(self):
         time_list = self.time_list.squeeze()
+        # print('time_list',time_list)
         x = self.waypoints[:, 0].squeeze()
         y = self.waypoints[:, 1].squeeze()
         z = self.waypoints[:, 2].squeeze()
@@ -102,7 +107,7 @@ class trajOpt:
         self.py_c = py_c
         self.pz_c = pz_c
         self.cost=np.trace(px_c.T@Qx@px_c+py_c.T@Qy@py_c+pz_c.T@Qz@pz_c)
-        # print('cost',self.cost+self.gamma*self.time_list[-1])
+        print('Snap cost',self.cost)
         self.colli_check()
 
         
@@ -111,10 +116,11 @@ class trajOpt:
         colli_num=0
         collision=False
         while T< self.time_list[-1]:
-            pos=self.get_des_state(T).pos
+            pos=(self.get_des_state(T).pos)/0.02
             if self.Map.idx.count((*pos,)) != 0:
                 idx=np.where(T >= self.time_list)[0][-1]+colli_num
                 # print(idx)
+                # raise NotImplementedError()
                 new_waypoint=(self.waypoints[idx]+self.waypoints[idx+1])/2
                 # print(new_waypoint)
                 self.waypoints=np.insert(self.waypoints,idx+1,new_waypoint,axis=0)
@@ -122,14 +128,20 @@ class trajOpt:
                 collision=True
                 colli_num+=1
                 T=self.time_list[idx+1]
-            T+=0.025
+            T+=0.001
+        if not collision:
+            # print('Not collision')
+            return
         if collision:
+            print('collision happened')
             self.len = self.waypoints.shape[0]
             self.yaw = 0
             self.heading = np.zeros(2)
-            self.optimize()
-            # self.time_allocation()
+            # self.time_list = np.zeros(self.len)
+            # self.optimize()
+            self.time_allocation()
             self.min_snap_traj()
+
 
     def get_des_state(self, t):
         # print(t)
@@ -285,6 +297,8 @@ def cls_form(time_list, x):
 def get_Q(time_list,x):
     seg_num=x.shape[0]-1
     Q=np.zeros([seg_num*8,seg_num*8])
+    print('segnum',seg_num)
+    print('time_list',time_list)
     for i in range(seg_num):
         Q[i*8:i*8+8,i*8:i*8+8]=get_subq(time_list[i],time_list[i+1])
     return Q

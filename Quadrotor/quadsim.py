@@ -6,7 +6,7 @@ from .quadrotor import Quadrotor
 
 
 class QuadSim:
-    def __init__(self, controller, des_state, Tmax, update, plan, seg_num,
+    def __init__(self, controller, des_state, Tmax, 
                  pos=None, attitude=[0, 0, 0],
                  animation_frequency=50,
                  control_frequency=200):
@@ -16,9 +16,6 @@ class QuadSim:
         self.dt = 1/control_frequency
         self.animation_rate = 1/animation_frequency
         self.control_iterations = int(control_frequency / animation_frequency)
-        self.update = update
-        self.plan = plan
-        self.segnum = seg_num
         self.des_state = des_state
         self.controller = controller
         if pos is None:
@@ -31,13 +28,11 @@ class QuadSim:
         des_state = self.des_state(self.t)
         state = self.Quadrotor.get_state()
         state_dot = self.Quadrotor.statedot
-        segnum = self.segnum(self.t)
-        self.update(des_state, state, segnum, state_dot)
-        local_des_state = self.plan()
+
         if(self.t >= self.Tmax):
-            U, M = self.controller.run_hover(state, local_des_state, self.dt)
+            U, M = self.controller.run_hover(state, des_state, self.dt)
         else:
-            U, M = self.controller.run(state, local_des_state)
+            U, M = self.controller.run(state, des_state)
         self.Quadrotor.update(self.dt, U, M)
         self.t += self.dt
 
