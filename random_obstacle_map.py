@@ -116,7 +116,25 @@ def random_grid_3D(bounds, density):
                   E[l,m] = hh
   return E
 
+def generate_map(bounds):
+  bounds = np.array([0,100])
 
+  # Define the density value of the map
+  density = 2.5
+
+  # Create the obstacles on the map
+  obstacles_ = random_grid_3D(bounds,density)
+  obstacles = []
+  for i in range(100):
+    for j in range(100):
+      if obstacles_[i,j] > 0:
+        obstacles.append([i, j, 0, i-1, j+1, obstacles_[i,j]])
+        
+  # create map with selected obstacles
+  mapobs = Map(obstacles, bounds, dim = 3)
+  return mapobs, obstacles
+  
+  
 def main():
   # limits on map dimensions
   bounds = np.array([0,100])
