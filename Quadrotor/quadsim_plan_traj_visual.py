@@ -38,7 +38,7 @@ class QuadSim_plan_traj_visual(QuadSim):
         
         des_state = self.des_state(self.t)
         self.planned_pos_history.append(des_state.pos)
-        print("pos: ", des_state.pos, "vel: ", des_state.vel, "acc: ", des_state.acc)
+        # print("pos: ", des_state.pos, "vel: ", des_state.vel, "acc: ", des_state.acc)
         history = np.array(self.planned_pos_history)
         self.lines[-2].set_data(history[:, 0], history[:, 1])
         self.lines[-2].set_3d_properties(history[:, -1])

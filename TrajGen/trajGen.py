@@ -5,7 +5,7 @@ from .trajutils import *
 
 
 class trajGenerator:
-    def __init__(self, waypoints, max_vel=5, gamma=100):
+    def __init__(self, waypoints, max_vel=0.8, gamma=100):
         self.waypoints = waypoints
         self.max_vel = max_vel
         self.gamma = gamma
@@ -31,7 +31,6 @@ class trajGenerator:
 
         self.TS[1:] = np.cumsum(T)
         self.coeffs, self.cost = self.MinimizeSnap(T)
-
 
     def MinimizeSnap(self, T):
         unkns = 4*(self.len - 2)
@@ -93,11 +92,12 @@ class trajGenerator:
 
         t = t - self.TS[i]
         coeff = (self.coeffs.T)[:, self.order*i:self.order*(i+1)]
+
         pos = coeff@polyder(t)
         vel = coeff@polyder(t, 1)
         accl = coeff@polyder(t, 2)
         jerk = coeff@polyder(t, 3)
-        
+
         # set yaw in the direction of velocity
         yaw, yawdot = self.get_yaw(vel[:2])
 
