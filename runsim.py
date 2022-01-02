@@ -8,6 +8,7 @@ from Quadrotor import QuadSim, QuadSim_plan_traj_visual
 from PathPlanning.maputils import *
 import controller
 import random_obstacle_map
+import time
 np.random.seed(8)
 
 solution = "prm"
@@ -41,41 +42,68 @@ goal = np.array([30, 80, 50])
 
 # Informed RRT* and Minimized Snap
 if solution == "rrt":
+    # plan waypoints
+    start = time.time()
     rrt = RRTStar(start=start, goal=goal,
               Map=mapobs_inf, max_iter=500,
               goal_sample_rate=0.1)
     waypoints, min_cost = rrt.plan()
     waypoints = scale_factor * waypoints  # scale the waypoints
-    traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6) # Generate trajectory
+    time_for_waypoints = np.round_(time.time() - start, decimals=2, out=None)
+    rrt.draw_path(ax, waypoints) # plot the waypoints
+    # generate collision free trajectory
+    start = time.time()
+    try:
+        print("Obstacle avoidance using flying corridor")
+        traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap & flying corridor
+    except:
+        print("Obstacle avoidance using point inseration")
+        traj = trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap &  point inseration
     Tmax = traj.time_list[-1]
     des_state = traj.get_des_state
-    sim = QuadSim_plan_traj_visual(controller, des_state, Tmax) # Init simulation
-    rrt.draw_path(ax, waypoints) # plot the waypoints
-    sim.run(ax) # run simulation
+    time_for_trajectory = np.round_(time.time() - start, decimals=2, out=None)
+    # run simulation
+    sim = QuadSim_plan_traj_visual(controller, des_state, Tmax)
+    sim.run(ax)
 
 # PRM* and Minimize Snap
 if solution == "prm":
+    # plan waypoints
+    start = time.time()
     prm = PRMStar(start=start, goal=goal, Map=mapobs_inf)
     waypoints, min_cost = prm.plan()
     waypoints = scale_factor * waypoints  # scale the waypoints
-    traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.5, gamma=1e6) # Generate trajectory
-    Tmax = traj.time_list[-1]
-    des_state = traj.get_des_state
-    sim = QuadSim_plan_traj_visual(controller, des_state, Tmax) # Init simulation
+    time_for_waypoints = np.round_(time.time() - start, decimals=2, out=None)
     # prm.draw_graph(ax, scale_factor) # plot ramdom road map
     prm.draw_path(ax, waypoints) # plot the waypoints
+    # generate collision free trajectory
+    start = time.time()
+    try:
+        print("Obstacle avoidance using flying corridor")
+        traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using flying corridor
+    except:
+        print("Obstacle avoidance using point inseration")
+        traj = trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using point inseration
+    Tmax = traj.time_list[-1]
+    des_state = traj.get_des_state
+    time_for_trajectory = np.round_(time.time() - start, decimals=2, out=None)
+    # run simulation
+    sim = QuadSim_plan_traj_visual(controller, des_state, Tmax) # Init simulation
     sim.run(ax) # run simulation
 
 # Kinodynamics RRT*
 if solution == "kino_rrt":
+    # generate collision free trajectory
+    start = time.time()
     kino_rrt = KinoRRTStar(start=start, goal=goal,
-                Map=mapobs, max_iter=50)
+                Map=mapobs, max_iter=30)
     traj, waypoints = kino_rrt.plan()
     print("waypoints: ", waypoints)
+    kino_rrt.draw_path(ax, waypoints) # draw lines connecting waypoints
     Tmax = traj.get_Tmax()
     des_state = traj.get_des_state
+    # run simulation
     sim = QuadSim_plan_traj_visual(controller, des_state, Tmax) # Init simulation
-    kino_rrt.draw_path(ax, waypoints)
     sim.run(ax) # run simulation
 
 

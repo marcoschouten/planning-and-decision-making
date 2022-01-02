@@ -29,7 +29,9 @@ def main():
     plt.plot(x, y_true)
     plt.plot(x, y_pred)
     plt.show()
-
+    print(y_pred)
+    print(y_true)
+    
     mse = np.round_(mean_squared_error(y_true, y_pred), decimals=2, out=None)
     print('mse {}'.format(mse))
   

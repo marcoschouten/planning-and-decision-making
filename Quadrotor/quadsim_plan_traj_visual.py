@@ -49,7 +49,7 @@ class QuadSim_plan_traj_visual(QuadSim):
         
     def run(self, ax=None, save=True):
         self.init_plot(ax)
-        while self.t < self.Tmax + 5:
+        while self.t < self.Tmax + 2:
             frame = self.control_loop()
             self.update_plot(frame)
             plt.pause(self.animation_rate)
