@@ -13,7 +13,7 @@ def grid_3D(sizeE, d_grid, h, P_init, P_end, n_low):
     # Generate random grid with discrete 0/1 altitude using normal distribtion
     mean_E = 0
     sigma = 1
-    k_sigma = 2.2
+    k_sigma = 2.5
     E = np.random.normal(mean_E, sigma, size=(x_size+1,y_size+1))
     sigma_obstacle = k_sigma * sigma
     E = E > sigma_obstacle

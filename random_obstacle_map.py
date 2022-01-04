@@ -102,18 +102,20 @@ def random_grid_3D(bounds, density):
 
   for i in range(x_size):
       for j in range(y_size):
-          k = range(i - 1 - round(np.random.beta(0.5, 0.5)), i + 1 + round(np.random.beta(0.5, 0.5)), 1)
-          l = range(j - 1 - round(np.random.beta(0.5, 0.5)), j + 1 + round(np.random.beta(0.5, 0.5)), 1)
+          #k = range(i - 1 - round(np.random.beta(0.5, 0.5)), i + 1 + round(np.random.beta(0.5, 0.5)), 1)
+          k = i
+          #l = range(j - 1 - round(np.random.beta(0.5, 0.5)), j + 1 + round(np.random.beta(0.5, 0.5)), 1)
+          l = j
 
-          if min(k) > 0 and min(l) > 0 and max(k) <= x_size and max(l) <= y_size and E_temp[j,i]==1:
+          if k > 0 and l > 0 and k <= x_size and l <= y_size and E_temp[j,i]==1:
               hh = round(np.random.normal(0.5*h, 0.5*h))
 
               if hh < h_min:
                   hh = h_min
               elif hh > z_size:
                   hh = z_size
-              for m in k:
-                  E[l,m] = hh
+              #for m in k:
+              E[l,k] = hh
   return E
 
 
@@ -122,15 +124,14 @@ def main():
   bounds = np.array([0,100])
 
   # Define the density value of the map
-  density = 2.5
-
+  density = 2.7
   # Create the obstacles on the map
   obstacles_ = random_grid_3D(bounds,density)
   obstacles = []
   for i in range(100):
     for j in range(100):
       if obstacles_[i,j] > 0:
-        obstacles.append([i, j, 0, i-1, j+1, obstacles_[i,j]])
+        obstacles.append([i, j, 0, i-5, j+5, obstacles_[i,j]])
 
   # create map with selected obstacles
   mapobs = Map(obstacles, bounds, dim = 3)
