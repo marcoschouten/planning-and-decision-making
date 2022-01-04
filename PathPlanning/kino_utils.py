@@ -4,8 +4,10 @@ from collections import namedtuple
 from numpy import linalg as LA
 
 DesiredState = namedtuple('DesiredState', 'pos vel acc jerk yaw yawdot')
+poly_order = 10  # 9th order polynomial
 
-def polyder(t, k=0, order=6):
+
+def polyder(t, k=0, order=poly_order):
     '''
     (10th) order polynomial: t**0 + t**1 + ... + t**9
     k: take k derivative
@@ -16,45 +18,31 @@ def polyder(t, k=0, order=6):
     terms[k:] = coeffs*pows
     return terms
 
-class linearized_qued_model:
-    def __init__(self):
-        self.mass = 0.18  # kg
-        self.g = 9.81  # m/s^2
-        self.arm_length = 0.086  # meter
-        L = self.arm_length
-        self.A = np.array([[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, self.g, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, -self.g, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ])
-        self.B = np.array([[0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [1/self.mass, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, L*4000, 0, 0],
-                           [0, 0, L*4310.34, 0],
-                           [0, 0, 0, L*2675.23], ])
-        self.R = np.diag([1, 1, 1, 1])
+
+def Hessian(T, order=poly_order, opt=4):
+    T = [float(T)]
+    n = len(T)
+    Q = np.zeros((order*n, order*n))
+    for k in range(n):
+        m = np.arange(0, opt, 1)
+        for i in range(order):
+            for j in range(order):
+                if i >= opt and j >= opt:
+                    pow = i+j-2*opt+1
+                    Q[order*k+i, order*k+j] = 2 * \
+                        np.prod((i-m)*(j-m))*T[k]**pow/pow
+    return Q
 
 
 class Node_with_traj(Node):
     def __init__(self, coords):
         super().__init__(coords)
         self.vel = 0
+        self.acc = 0
+        self.jerk = 0
         self.trajectories = {}
         self.T = 1
+
 
 class Trajectory_segment:
     def __init__(self, coeff, cost, T):
@@ -65,9 +53,17 @@ class Trajectory_segment:
     def get_pos(self, t):
         pos = []
         for i in range(len(self.coeff)):
-            pos_val = (self.coeff[i] @ polyder(t, order=6))
+            pos_val = (self.coeff[i] @ polyder(t, order=poly_order))
             pos.append(pos_val)
         return pos
+
+    def get_des_state_seg(self, t):
+        coeff = np.array(self.coeff)
+        pos = coeff @ polyder(t, order=poly_order)
+        vel = coeff @ polyder(t, 1, order=poly_order)
+        acc = coeff @ polyder(t, 2, order=poly_order)
+        jerk = coeff @ polyder(t, 3, order=poly_order)
+        return pos, vel, acc, jerk
 
 
 class trajGenerator:
@@ -82,26 +78,21 @@ class trajGenerator:
             trajectory_segment = self.trajectory_segments[i]
             Tmax += trajectory_segment.T
         return Tmax
-    
+
     def get_des_state(self, t):
+        # determine which trajectory we should use
         for i in range(len(self.trajectory_segments)-1, -1, -1):
             trajectory_segment = self.trajectory_segments[i]
             if t > trajectory_segment.T:
                 t -= trajectory_segment.T
                 continue
-            coeff = np.array(trajectory_segment.coeff)
             break
-        
-        # print(coeff)
-        pos = coeff @ polyder(t, order=6)
-        vel = coeff @ polyder(t, 1, order=6)
-        accl = coeff @ polyder(t, 2, order=6)
-        jerk = coeff @ polyder(t, 3, order=6)
+
+        pos, vel, acc, jerk = trajectory_segment.get_des_state_seg(t)
         # set yaw in the direction of velocity
         yaw, yawdot = self.get_yaw(vel[:2])
         # print(pos)
-        return DesiredState(pos, vel, accl, jerk, yaw, yawdot)
-
+        return DesiredState(pos, vel, acc, jerk, yaw, yawdot)
 
     def get_yaw(self, vel):
         curr_heading = vel/LA.norm(vel)
