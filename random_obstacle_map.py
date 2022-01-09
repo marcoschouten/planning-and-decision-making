@@ -80,7 +80,7 @@ def cuboid_data(box):
 
 
 # Generate random obstacle parameters
-def random_grid_3D(bounds, density):
+def random_grid_3D(bounds, density, height):
   x_size = bounds[1]
   y_size = bounds[1]
   z_size = bounds[1]
@@ -90,7 +90,7 @@ def random_grid_3D(bounds, density):
   sigma = 1
   k_sigma = density
   E = np.random.normal(mean_E, sigma, size=(x_size, y_size))
-  h = 60
+  h = height
 
   # Set the decision threshold
   sigma_obstacle = k_sigma * sigma
@@ -99,6 +99,7 @@ def random_grid_3D(bounds, density):
 
   # Generate random altitude to blocks
   h_min = 15 # minimal obstacles altitude
+  E_temp = E
   for i in range(x_size):
       for j in range(y_size):
           #k = range(i - 1 - round(np.random.beta(0.5, 0.5)), i + 1 + round(np.random.beta(0.5, 0.5)), 1)
@@ -106,7 +107,6 @@ def random_grid_3D(bounds, density):
 
           if i > 0 and j > 0 and i <= x_size and j <= y_size and E_temp[j,i]==1:
               hh = round(np.random.normal(0.7*h, 0.5*h))
-              print(hh)
               if hh < h_min:
                   hh = h_min
               elif hh > z_size:
@@ -114,22 +114,19 @@ def random_grid_3D(bounds, density):
               E[j,i] = hh
   return E
 
-def generate_map(bounds):
-  bounds = np.array([0,100])
-
-  # Define the density value of the map
-  density = 2.5
-
+def generate_map(bounds, density, height):
   # Create the obstacles on the map
-  obstacles_ = random_grid_3D(bounds,density)
+  obstacles_ = random_grid_3D(bounds,density,height)
   obstacles = []
-  for i in range(100):
-    for j in range(100):
+  for i in range(bounds[1]):
+    for j in range(bounds[1]):
       if obstacles_[i,j] > 0:
-        obstacles.append([i, j, 0, i-1, j+1, obstacles_[i,j]])
+        ss = round(np.random.normal(2.5, 1)) # Define the parameter to randomize the obstacle size
+        obstacles.append([i, j, 0, i+1+ss, j+1+ss, obstacles_[i,j]])
         
   # create map with selected obstacles
   mapobs = Map(obstacles, bounds, dim = 3)
+  print('Generate %d obstacles on the random map.'%len(obstacles))
   return mapobs, obstacles
   
   
@@ -138,18 +135,15 @@ def main():
   bounds = np.array([0,100])
 
   # Define the density value of the map
-  density = 2.7
-  # Create the obstacles on the map
-  obstacles_ = random_grid_3D(bounds,density)
-  obstacles = []
-  for i in range(100):
-    for j in range(100):
-      if obstacles_[i,j] > 0:
-        obstacles.append([i, j, 0, i-5, j+5, obstacles_[i,j]])
+  density = 2.5
+
+  # Define the height parameter of the obstacles on the map
+  height = 60
 
   # create map with selected obstacles
-  mapobs = Map(obstacles, bounds, dim = 3)
+  mapobs,obstacles = generate_map(bounds, density, height)
 
+  # Visualize the obstacle map 
   fig = plt.figure()
   ax = Axes3D.Axes3D(fig)
   ax.set_xlim((0,2))
