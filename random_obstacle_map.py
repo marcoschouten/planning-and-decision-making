@@ -89,7 +89,7 @@ def random_grid_3D(bounds, density, height):
   mean_E = 0
   sigma = 1
   k_sigma = density
-  E = np.random.normal(mean_E, sigma, size=(x_size, y_size))
+  E = np.random.normal(mean_E, sigma, size=(x_size+1, y_size+1))
   h = height
 
   # Set the decision threshold
@@ -98,14 +98,14 @@ def random_grid_3D(bounds, density, height):
   E = E.astype(np.float)
 
   # Generate random altitude to blocks
-  h_min = 15 # minimal obstacles altitude
+  h_min = 10 # minimal obstacles altitude
   E_temp = E
   for i in range(x_size):
       for j in range(y_size):
           #k = range(i - 1 - round(np.random.beta(0.5, 0.5)), i + 1 + round(np.random.beta(0.5, 0.5)), 1)
           #l = range(j - 1 - round(np.random.beta(0.5, 0.5)), j + 1 + round(np.random.beta(0.5, 0.5)), 1)
 
-          if i > 0 and j > 0 and i <= x_size and j <= y_size and E_temp[j,i]==1:
+          if E_temp[j,i]==1:
               hh = round(np.random.normal(0.7*h, 0.5*h))
               if hh < h_min:
                   hh = h_min
@@ -114,22 +114,35 @@ def random_grid_3D(bounds, density, height):
               E[j,i] = hh
   return E
 
-def generate_map(bounds, density, height):
+def generate_map(bounds, density, height, start, goal):
   # Create the obstacles on the map
   obstacles_ = random_grid_3D(bounds,density,height)
   obstacles = []
   for i in range(bounds[1]):
     for j in range(bounds[1]):
       if obstacles_[i,j] > 0:
-        ss = round(np.random.normal(2.5, 1)) # Define the parameter to randomize the obstacle size
-        obstacles.append([i, j, 0, i+1+ss, j+1+ss, obstacles_[i,j]])
+        ss = round(np.random.normal(3, 1)) # Define the parameter to randomize the obstacle size
+        obstacles.append([i, j, 0, i+ss, j+ss, obstacles_[i,j]])
         
   # create map with selected obstacles
+  obstacles = start_goal_mapcheck(start,goal,obstacles)
   mapobs = Map(obstacles, bounds, dim = 3)
   print('Generate %d obstacles on the random map.'%len(obstacles))
   return mapobs, obstacles
-  
-  
+
+
+# Check if the start point and the goal point on the map  
+def start_goal_mapcheck(start,goal,obstacles):
+  for i in range(len(obstacles)):
+    if (start[0] >= obstacles[i][0] and start[0] <= obstacles[i][3] and start[1] >= obstacles[i][1] \
+    and start[1] <= obstacles[i][4] and start[2] >= obstacles[i][2] and start[2] <= obstacles[i][5]) \
+    or (goal[0] >= obstacles[i][0] and goal[0] <= obstacles[i][3] and goal[1] >= obstacles[i][1] \
+    and goal[1] <= obstacles[i][4] and goal[2] >= obstacles[i][2] and goal[2] <= obstacles[i][5]):
+      obstacles.pop(i)
+      print("The start point and goal point collides with obstacles!")
+  return obstacles
+
+
 def main():
   # limits on map dimensions
   bounds = np.array([0,100])
@@ -138,19 +151,22 @@ def main():
   density = 2.5
 
   # Define the height parameter of the obstacles on the map
-  height = 60
+  height = 0.5 * bounds[1]
+
+  # Define the start point and goal point
+  start_point = np.array([0,0,5])
+  goal_point = np.array([65,65,65])
 
   # create map with selected obstacles
-  mapobs,obstacles = generate_map(bounds, density, height)
-
+  mapobs,obstacles = generate_map(bounds, density, height, start_point, goal_point)
   # Visualize the obstacle map 
   fig = plt.figure()
   ax = Axes3D.Axes3D(fig)
-  ax.set_xlim((0,2))
-  ax.set_ylim((0,2))
-  ax.set_zlim((0,2))
+  ax.set_xlim((bounds[0],bounds[1]))
+  ax.set_ylim((bounds[0],bounds[1]))
+  ax.set_zlim((bounds[0],bounds[1]))
 
-  mapobs.plotobs(ax, scale = 0.02)
+  mapobs.plotobs(ax, scale = 1)
   plt.show()
 
 '''Call the main function'''
