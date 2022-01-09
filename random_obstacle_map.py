@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
 
 class Map:
-  # Self initiation
   def __init__(self, obstacle_list, bounds, path_resolution = 0.5, dim = 3):
+    '''initialise map with given properties'''
     self.dim = dim 
-    self.idx = self.get_tree(obstacle_list,dim)
+    self.idx = self.get_tree(obstacle_list, dim)
     self.len = len(obstacle_list)
     self.path_res = path_resolution
     self.obstacles = obstacle_list
@@ -39,9 +39,9 @@ class Map:
     return False
 
   def inbounds(self,p):
-      '''Check if p lies inside map bounds'''
-      lower,upper = self.bounds
-      return (lower <= p).all() and (p <= upper).all()
+    '''Check if p lies inside map bounds'''
+    lower,upper = self.bounds
+    return (lower <= p).all() and (p <= upper).all()
 
   def plotobs(self,ax,scale = 1):
     '''plot all obstacles'''
@@ -78,6 +78,8 @@ def cuboid_data(box):
          [0, 0, h, h, 0]]
     return box[0] + np.array(x), box[1] + np.array(y), box[2] + np.array(z)
 
+
+# Generate random obstacle parameters
 def random_grid_3D(bounds, density):
   x_size = bounds[1]
   y_size = bounds[1]
@@ -87,35 +89,29 @@ def random_grid_3D(bounds, density):
   mean_E = 0
   sigma = 1
   k_sigma = density
-  E = np.random.normal(mean_E, sigma, size=(x_size+1,y_size+1))
+  E = np.random.normal(mean_E, sigma, size=(x_size, y_size))
   h = 60
 
   # Set the decision threshold
   sigma_obstacle = k_sigma * sigma
   E = E > sigma_obstacle
   E = E.astype(np.float)
-  
+
   # Generate random altitude to blocks
-  h_min = 10 # minimal obstacles altitude
-
-  E_temp = E
-
+  h_min = 15 # minimal obstacles altitude
   for i in range(x_size):
       for j in range(y_size):
           #k = range(i - 1 - round(np.random.beta(0.5, 0.5)), i + 1 + round(np.random.beta(0.5, 0.5)), 1)
-          k = i
           #l = range(j - 1 - round(np.random.beta(0.5, 0.5)), j + 1 + round(np.random.beta(0.5, 0.5)), 1)
-          l = j
 
-          if k > 0 and l > 0 and k <= x_size and l <= y_size and E_temp[j,i]==1:
-              hh = round(np.random.normal(0.5*h, 0.5*h))
-
+          if i > 0 and j > 0 and i <= x_size and j <= y_size and E_temp[j,i]==1:
+              hh = round(np.random.normal(0.7*h, 0.5*h))
+              print(hh)
               if hh < h_min:
                   hh = h_min
               elif hh > z_size:
                   hh = z_size
-              #for m in k:
-              E[l,k] = hh
+              E[j,i] = hh
   return E
 
 def generate_map(bounds):
@@ -163,5 +159,8 @@ def main():
   mapobs.plotobs(ax, scale = 0.02)
   plt.show()
 
+'''Call the main function'''
 if __name__ == "__main__":
   main()
+
+  
