@@ -81,21 +81,26 @@ def cuboid_data(box):
 
 # Generate random obstacle parameters
 def random_grid_3D(bounds, density, height):
-  x_size = bounds[1]
-  y_size = bounds[1]
-  z_size = bounds[1]
+  if max(bounds) >= 50:
+      x_size = bounds[1]
+      y_size = bounds[1]
+      z_size = bounds[1]
+  else:
+      x_size = 100
+      y_size = 100
+      z_size = 100
 
   # Generate random grid with discrete 0/1 altitude using normal distribtion
   mean_E = 0
   sigma = 1
   k_sigma = density
-  E = np.random.normal(mean_E, sigma, size=(x_size+1, y_size+1))
+  E = np.random.normal(mean_E, sigma, size=(x_size, y_size))
   h = height
 
   # Set the decision threshold
   sigma_obstacle = k_sigma * sigma
   E = E > sigma_obstacle
-  E = E.astype(np.float)
+  E = E.astype(float)
 
   # Generate random altitude to blocks
   h_min = 10 # minimal obstacles altitude
@@ -118,11 +123,20 @@ def generate_map(bounds, density, height, start, goal):
   # Create the obstacles on the map
   obstacles_ = random_grid_3D(bounds,density,height)
   obstacles = []
-  for i in range(bounds[1]):
-    for j in range(bounds[1]):
+
+  if max(bounds) >= 50:
+      x_size = bounds[1]
+      y_size = bounds[1]
+  else:
+      x_size = 100
+      y_size = 100
+  scale_ = bounds[1]/100
+
+  for i in range(x_size):
+    for j in range(y_size):
       if obstacles_[i,j] > 0:
         ss = round(np.random.normal(3, 1)) # Define the parameter to randomize the obstacle size
-        obstacles.append([i, j, 0, i+ss, j+ss, obstacles_[i,j]])
+        obstacles.append([i * scale_, j * scale_, 0, (i+ss)* scale_, (j+ss)* scale_, obstacles_[i,j] * scale_])
         
   # create map with selected obstacles
   obstacles = start_goal_mapcheck(start,goal,obstacles)
@@ -149,17 +163,17 @@ def start_goal_mapcheck(start,goal,obstacles):
 
 def main():
   # limits on map dimensions
-  bounds = np.array([0,100])
+  bounds = np.array([0,2])
 
   # Define the density value of the map
   density = 2.5
 
   # Define the height parameter of the obstacles on the map
-  height = 0.5 * bounds[1]
+  height = 50
 
   # Define the start point and goal point
   start = np.array([0,0,5])
-  goal = np.array([65,65,65])
+  goal = np.array([65,65,5])
 
   # create map with selected obstacles
   mapobs,obstacles = generate_map(bounds, density, height, start, goal)
