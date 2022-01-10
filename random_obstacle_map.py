@@ -3,7 +3,7 @@ from rtree import index
 from matplotlib.pyplot import Rectangle
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
-
+np.random.seed(15)
 class Map:
   def __init__(self, obstacle_list, bounds, path_resolution = 0.5, dim = 3):
     '''initialise map with given properties'''
@@ -119,7 +119,9 @@ def random_grid_3D(bounds, density, height):
               E[j,i] = hh
   return E
 
-def generate_map(bounds, density, height, start, goal):
+def generate_map(bounds, density, height, start, goal, path_resolution):
+  # np.random.seed(20)
+  np.random.seed(42)
   # Create the obstacles on the map
   obstacles_ = random_grid_3D(bounds,density,height)
   obstacles = []
@@ -140,7 +142,7 @@ def generate_map(bounds, density, height, start, goal):
         
   # create map with selected obstacles
   obstacles = start_goal_mapcheck(start,goal,obstacles)
-  mapobs = Map(obstacles, bounds, dim = 3)
+  mapobs = Map(obstacles, bounds, dim = 3, path_resolution=path_resolution)
   print('Generate %d obstacles on the random map.'%len(obstacles))
   return mapobs, obstacles
 

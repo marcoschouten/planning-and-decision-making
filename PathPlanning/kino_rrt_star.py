@@ -10,7 +10,7 @@ from .sampleutils import InformedSampler
 
 
 class KinoRRTStar(RRT):
-    def __init__(self, start, goal, Map,
+    def __init__(self, start, goal, Map, scale_factor,
                  max_extend_length=10.0,
                  path_resolution=0.5,
                  goal_sample_rate=0.1,
@@ -18,6 +18,7 @@ class KinoRRTStar(RRT):
         super().__init__(start, goal, Map, max_extend_length,
                          path_resolution, goal_sample_rate, max_iter)
         self.final_nodes = []
+        self.scale_factor = scale_factor
         self.start = Node_with_traj(start)
         self.goal = Node_with_traj(goal)
         self.start.cost = 0
@@ -36,8 +37,9 @@ class KinoRRTStar(RRT):
             new_node = self.get_random_node()
             # Get nearest node
             nearest_node = self.tree.nearest(new_node)
-            # Attach velocity, acceleration to random node
-            self.init_new_node(nearest_node, new_node)
+            if new_node is not self.goal:
+                # Attach velocity, acceleration to random node
+                self.init_new_node(nearest_node, new_node)
             # If path between new_node and nearest node is not in collision
             if not self.collision(nearest_node, new_node):
                 # choose parent + rewiring
@@ -61,16 +63,17 @@ class KinoRRTStar(RRT):
         #         rnd = self.sample(bounds=np.array([-15, 15])) + self.goal.p
         #     return Node_with_traj(rnd)
         if np.random.rand() > self.goal_sample_rate:
-            rnd = self.sample()
+            # rnd = self.sample(bounds=self.map.bounds)
+            rnd = self.get_random_pos(bounds=self.map.bounds)
             # in case the sampled point is in obstacle
             while self.map.collision(rnd, rnd):
-                rnd = self.sample()
+                rnd = self.get_random_pos(bounds=self.map.bounds)
             return Node_with_traj(rnd)
         else:
             return self.goal
 
     def init_new_node(self, nearest_node, new_node):
-        # '''Method 1, by optimizeing'''
+        '''Method 1, by optimizeing'''
         # trajectory_segment = self.steer(nearest_node, new_node, constr_option = "no_constr")
         # # Update velocity and acceleration of new_node
         # _, vel, acc, jerk = trajectory_segment.get_des_state_seg(trajectory_segment.T)
@@ -81,7 +84,7 @@ class KinoRRTStar(RRT):
         new_node.vel = self.get_random_vel(nearest_node, new_node)
         new_node.acc = self.get_random_acc(nearest_node, new_node)
         new_node.jerk = self.get_random_jerk(nearest_node, new_node)
-        # '''Method 3, combined method (sampling + optimization'''
+        '''Method 3, combined method (sampling + optimization'''
         # new_node.vel = self.get_random_vel(nearest_node, new_node)
         # new_node.acc = self.get_random_acc(nearest_node, new_node)
         # trajectory_segment = self.steer(nearest_node, new_node, constr_option = "partially_constr")
@@ -89,12 +92,21 @@ class KinoRRTStar(RRT):
         # _, vel, acc, jerk = trajectory_segment.get_des_state_seg(trajectory_segment.T)
         # new_node.jerk = jerk
 
-    def sample(self, bounds=np.array([0, 100])):
+    def sample(self, bounds):
         # Sample random point inside boundaries
         lower, upper = bounds
         # Return a 3d array
         return lower + np.random.rand(3)*(upper - lower)
 
+    def get_random_pos(self, bounds):
+        # Sample random point inside boundaries
+        lower, upper = bounds
+        diff = upper - lower
+        scale = np.array([diff, diff, diff*0.6])
+        point = lower + np.random.rand(3)*scale
+        # Return a 3d array
+        return point
+    
     def get_random_vel(self, from_node, to_node):
         '''
         Sample velocity close to the direction from from_node to to_node
@@ -102,7 +114,7 @@ class KinoRRTStar(RRT):
         pos1 = from_node.p
         pos2 = to_node.p
         direc_pos = (pos2 - pos1) / LA.norm(pos2 - pos1)
-        vel_bounds = np.array([-5, 5])
+        vel_bounds = np.array([-10, 10]) * self.scale_factor
         vel = self.sample(bounds=vel_bounds)
         direc_vel = vel / LA.norm(vel)
         while ((direc_vel.T @ direc_pos) < 0.5):
@@ -111,12 +123,12 @@ class KinoRRTStar(RRT):
         return vel
 
     def get_random_acc(self, from_node, to_node):
-        acc_bounds = np.array([-1, 1])
+        acc_bounds = np.array([-10, 10]) * self.scale_factor
         acc = self.sample(bounds=acc_bounds)
         return acc
 
     def get_random_jerk(self, from_node, to_node):
-        jerk_bounds = np.array([-1, 1])
+        jerk_bounds = np.array([-10, 10]) * self.scale_factor
         jerk = self.sample(bounds=jerk_bounds)
         return jerk
 
@@ -131,7 +143,7 @@ class KinoRRTStar(RRT):
                 return True
         return False
 
-    def steer(self, from_node, to_node, T_max=10, constr_option="all_constr"):
+    def steer(self, from_node, to_node, T_max=1.5, constr_option="all_constr"):
         if str(from_node.p) in to_node.trajectories:
             return to_node.trajectories[str(from_node.p)]
         T = (self.dist(from_node, to_node) /
@@ -173,16 +185,22 @@ class KinoRRTStar(RRT):
                 constraints.append(G @ c >= -h)
             elif constr_option == "no_constr":
                 A = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [1, T**1, T**2, T**3, T**4, T**5, T**6, T**7, T**8, T**9]])
+                              [1, T**1, T**2, T**3, T**4, T**5, T**6, T**7, T**8, T**9],
+                              [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 6, 0, 0, 0, 0, 0, 0]])
                 b = np.array([from_node.p[idx],
-                              to_node.p[idx]])
+                              to_node.p[idx],
+                              from_node.vel[idx],
+                              from_node.acc[idx],
+                              from_node.jerk[idx]])
                 constraints.append(A @ c == b)  # boundary conditions
-                G = np.array([[0, 1, 2*T, 3*T**2, 4*T**3, 5*T**4, 6*T**5, 7*T**6, 8*T**7, 9*T**8],
-                              [0, 0, 2, 6*T, 12*T**2, 20*T**3, 30*T**4, 42*T**5, 56*T**6, 72*T**7]])
-                h = np.array([5,
-                              1])
-                constraints.append(G @ c <= h)  # to_node vel, acc
-                constraints.append(G @ c >= -h)
+                # G = np.array([[0, 1, 2*T, 3*T**2, 4*T**3, 5*T**4, 6*T**5, 7*T**6, 8*T**7, 9*T**8],
+                #               [0, 0, 2, 6*T, 12*T**2, 20*T**3, 30*T**4, 42*T**5, 56*T**6, 72*T**7]])
+                # h = np.array([5,
+                #               1])*self.scale_factor
+                # constraints.append(G @ c <= h)  # to_node vel, acc
+                # constraints.append(G @ c >= -h)
             elif constr_option == "all_constr":
                 A = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [1, T**1, T**2, T**3, T**4, T **
@@ -218,7 +236,7 @@ class KinoRRTStar(RRT):
             if coeff_1d is None:
                 coeff = [np.zeros(poly_order) for i in range(3)]
                 cost = np.inf
-                trajectory_segment = Trajectory_segment(coeff, cost_val, T)
+                trajectory_segment = Trajectory_segment(coeff, cost, T)
                 to_node.trajectories[str(from_node.p)] = trajectory_segment
                 return trajectory_segment
             coeff.append(coeff_1d.flatten())
@@ -296,13 +314,13 @@ class KinoRRTStar(RRT):
         while node.parent:
             seg = node.trajectories[str(node.parent.p)]
             trajectory_segments.append(seg)
-            print("----------------------------------------")
-            print("seg stored in: ", node)
-            print("coeff: ", seg.coeff)
-            print("seg starts from (pos vel acc jerk): ",
-                  seg.get_des_state_seg(0))
-            print("seg ends at: ", seg.get_des_state_seg(seg.T))
-            print("----------------------------------------")
+            # print("----------------------------------------")
+            # print("seg stored in: ", node)
+            # print("coeff: ", seg.coeff)
+            # print("seg starts from (pos vel acc jerk): ",
+            #       seg.get_des_state_seg(0))
+            # print("seg ends at: ", seg.get_des_state_seg(seg.T))
+            # print("----------------------------------------")
             node = node.parent
         # raise ValueError("planned finished")
         return trajectory_segments

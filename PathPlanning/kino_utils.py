@@ -74,9 +74,8 @@ class trajGenerator:
 
     def get_Tmax(self):
         Tmax = 0
-        for i in range(len(self.trajectory_segments)-1, 0, -1):
-            trajectory_segment = self.trajectory_segments[i]
-            Tmax += trajectory_segment.T
+        for seg in self.trajectory_segments:
+            Tmax += seg.T
         return Tmax
 
     def get_des_state(self, t):
@@ -95,7 +94,10 @@ class trajGenerator:
         return DesiredState(pos, vel, acc, jerk, yaw, yawdot)
 
     def get_yaw(self, vel):
-        curr_heading = vel/LA.norm(vel)
+        if LA.norm(vel) < 1e-3:
+            curr_heading = self.heading
+        else:  
+            curr_heading = vel/LA.norm(vel)
         prev_heading = self.heading
         cosine = max(-1, min(np.dot(prev_heading, curr_heading), 1))
         dyaw = np.arccos(cosine)

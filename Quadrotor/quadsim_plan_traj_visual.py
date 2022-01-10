@@ -49,12 +49,13 @@ class QuadSim_plan_traj_visual(QuadSim):
         
     def run(self, ax=None, save=True):
         self.init_plot(ax)
-        while self.t < self.Tmax + 2:
-            if self.t > self.Tmax:
-                traj_length = 0
-                for i in range(len(self.planned_pos_history)-1):
-                    traj_length += LA.norm(self.planned_pos_history[i]-self.planned_pos_history[i+1])
-                raise ValueError("traj_length: ", traj_length)
+        
+        while self.t < self.Tmax:
             frame = self.control_loop()
             self.update_plot(frame)
             plt.pause(self.animation_rate)
+            
+        traj_length = 0
+        for i in range(len(self.planned_pos_history)-1):
+            traj_length += LA.norm(self.planned_pos_history[i]-self.planned_pos_history[i+1])
+        print("traj_length: {0:.2f}".format(traj_length))
