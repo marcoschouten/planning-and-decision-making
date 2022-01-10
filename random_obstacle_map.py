@@ -133,13 +133,17 @@ def generate_map(bounds, density, height, start, goal):
 
 # Check if the start point and the goal point on the map  
 def start_goal_mapcheck(start,goal,obstacles):
+  obs_pop = []
   for i in range(len(obstacles)):
     if (start[0] >= obstacles[i][0] and start[0] <= obstacles[i][3] and start[1] >= obstacles[i][1] \
     and start[1] <= obstacles[i][4] and start[2] >= obstacles[i][2] and start[2] <= obstacles[i][5]) \
     or (goal[0] >= obstacles[i][0] and goal[0] <= obstacles[i][3] and goal[1] >= obstacles[i][1] \
     and goal[1] <= obstacles[i][4] and goal[2] >= obstacles[i][2] and goal[2] <= obstacles[i][5]):
-      obstacles.pop(i)
+      obs_pop.append(i)
       print("The start point and goal point collides with obstacles!")
+  
+  for i in range(len(obs_pop)):
+    obstacles.pop(obs_pop[i])
   return obstacles
 
 
@@ -154,11 +158,11 @@ def main():
   height = 0.5 * bounds[1]
 
   # Define the start point and goal point
-  start_point = np.array([0,0,5])
-  goal_point = np.array([65,65,65])
+  start = np.array([0,0,5])
+  goal = np.array([65,65,65])
 
   # create map with selected obstacles
-  mapobs,obstacles = generate_map(bounds, density, height, start_point, goal_point)
+  mapobs,obstacles = generate_map(bounds, density, height, start, goal)
   # Visualize the obstacle map 
   fig = plt.figure()
   ax = Axes3D.Axes3D(fig)
