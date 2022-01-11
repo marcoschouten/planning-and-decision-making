@@ -17,3 +17,16 @@ The **newly added** functionalities by us are:
 - Velocity Obstacles.
 - Dynamic window approach.
 - Random generated map for simulation.
+
+### Dependencies
+numpy, matplotlib, rtree-linux, scipy, CVXPY, CVXOPT
+
+### Usage
+#### K-PRM* with Minisnap and Corridor Bounding Method
+```
+python runsim_prm.py
+```
+#### Kinodynamics RRT*
+```
+python runsim_kinorrt.py
+```
