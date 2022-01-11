@@ -127,7 +127,7 @@ class trajOpt:
                 # print(self.waypoints)
                 collision=True
                 colli_num+=1
-                T=self.time_list[idx+1]
+                T=self.time_list[idx-colli_num+2]
             T+=0.001
         if not collision:
             # print('Not collision')
