@@ -1,4 +1,4 @@
-## Quadrotor Planning
+## Quadrotor Planning (RO47005 Project)
 
 ### Simulation environment
 This project is built base on this [simulation environment](https://github.com/Bharath2/Quadrotor-Simulation).  The already built functionalities in this environment are:
