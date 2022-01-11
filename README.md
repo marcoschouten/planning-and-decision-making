@@ -1,51 +1,19 @@
-## Quadrotor simulation
+## Quadrotor Planning
 
-### This project contains:
-- Informed RRT* to plan a collision free path from start to goal position in an N-dimensional Map.
-- A minimum snap trajectory generator. The segment times between consecutive waypoints are also optimised.
-- Nonlinear geometric controller for aggressive trajectory tracking and hover controller
-- Quadrotor Simulator
+### Simulation environment
+This project is built base on this [simulation environment](https://github.com/Bharath2/Quadrotor-Simulation).  The already built functionalities in this environment are:
 
-### Dependencies
-- scipy, numpy, matplotlib, rtree-linux
+- Informed-RRT* path planner.
+- Minisnap trajectory generation without collision avoidance (solved by closed-form solution).
+- A non-linear controller for path following.
+- A quadrotor simulator.
 
-### Usage
+### Our contribution
+The **newly added** functionalities by us are:
 
-#### Trajectory generation and control example
-```python
-from TrajGen import trajGenerator, Helix_waypoints
-from Quadrotor import QuadSim
-import controller
-
-waypoints = Helix_waypoints(5)
-
-#Generate trajectory through waypoints
-traj = trajGenerator(waypoints,max_vel = 10,gamma = 1e6)
-
-#initialise simulation with given controller and trajectory
-Tmax = traj.TS[-1]
-des_state = traj.get_des_state
-sim = QuadSim(controller,des_state,Tmax)
-
-#run simulation
-sim.run()
-```
-![image](./imgs/helixtraj.gif)
-
-#### With Path Planning
-```python
-python3 runsim.py
-```
-![image](./imgs/rrt2.gif)
-
-
-find out more in [PathPlanning/README.md](./PathPlanning/README.md)  
-### Future Work
-
-- Adding disturbance to quadrotor model
-- Collision checking after trajectory generation
-
-### References
-- [Polynomial Trajectory Planning for Aggressive Quadrotor Flight in Dense Indoor Environments - Charles Richter, Adam Bry, and Nicholas Roy](https://groups.csail.mit.edu/rrg/papers/Richter_ISRR13.pdf)
-- [Trajectory Generation and Control for Quadrotors - Daniel Mellinger and Vijay Kumar](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1705&context=edissertations)
-- [Motion Planning as Search - Russ Tedrake](http://underactuated.csail.mit.edu/planning.html#section2)
+- PRM* path planner.
+- Collision free minisnap trajectory optimization using two methods, namely corridor bounding method and waypoint insertion method.
+- A simplified version of Kinodynamics RRT*.
+- Velocity Obstacles.
+- Dynamic window approach.
+- Random generated map for simulation.
