@@ -26,7 +26,7 @@ numpy, matplotlib, rtree-linux, scipy, CVXPY, CVXOPT
 ```
 python runsim_prm.py
 ```
-![k-PRM*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/prm.gif)
+![k-PRM*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/k_prm.gif)
 #### Kinodynamics RRT*
 ```
 python runsim_kinorrt.py
