@@ -36,4 +36,4 @@ python runsim_kinorrt.py
 ```
 python Quadrotor-Simulation/runsim.py
 ```
-![VO*](https://https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/vo.gif)
+![VO*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/vo.gif)
