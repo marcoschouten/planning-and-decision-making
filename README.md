@@ -35,5 +35,5 @@ python runsim_kinorrt.py
 #### Velocity Obstacle
 ```
 python Quadrotor-Simulation/runsim.py
-![VO*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/vo.gif)
 ```
+![VO*](https://https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/vo.gif)
