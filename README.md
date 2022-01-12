@@ -31,7 +31,7 @@ python runsim_prm.py
 ```
 python runsim_kinorrt.py
 ```
-![KinoRRT*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/kino.gif)
+![KinoRRT*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/kino_rrt.gif)
 #### Velocity Obstacle
 ```
 python Quadrotor-Simulation/runsim.py
