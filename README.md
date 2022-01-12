@@ -26,7 +26,7 @@ numpy, matplotlib, rtree-linux, scipy, CVXPY, CVXOPT
 ```
 python runsim_prm.py
 ```
-![k-PRM*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/k_prm.gif)
+![k-PRM*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/prm.gif)
 #### Kinodynamics RRT*
 ```
 python runsim_kinorrt.py
@@ -35,5 +35,5 @@ python runsim_kinorrt.py
 #### Velocity Obstacle
 ```
 python Quadrotor-Simulation/runsim.py
-![VO*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/Collision_avoidance.gif)
+![VO*](https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/collisionavoidance.gif)
 ```
