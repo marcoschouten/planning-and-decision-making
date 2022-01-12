@@ -81,8 +81,10 @@ class PRMStar():
         if path is None:
             print("path not available")
         else:
+            # ax.plot(*np.array(path).T, '-',
+            #         color=(0.9, 0.2, 0.5, 0.8), zorder=5)
             ax.plot(*np.array(path).T, '-',
-                    color=(0.9, 0.2, 0.5, 0.8), zorder=5)
+                    color='b', zorder=5)
     
     def draw_graph(self, ax, scale_factor):
         '''draw the path if available'''

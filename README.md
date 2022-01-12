@@ -26,7 +26,13 @@ numpy, matplotlib, rtree-linux, scipy, CVXPY, CVXOPT
 ```
 python runsim_prm.py
 ```
+
 #### Kinodynamics RRT*
 ```
 python runsim_kinorrt.py
+```
+
+#### Velocity Obstacle
+```
+
 ```

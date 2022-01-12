@@ -64,7 +64,7 @@ if solution == "rrt":
 if solution == "prm":
     # plan waypoints
     start_time = time.time()
-    prm = PRMStar(start=start, goal=goal, Map=mapobs_inf)
+    prm = PRMStar(start=start, goal=goal, Map=mapobs_inf, num_sample=500)
     waypoints, min_cost = prm.plan()
     waypoints = scale_factor * waypoints  # scale the waypoints
     # time_for_waypoints = np.round_(time.time() - start, decimals=2, out=None)
