@@ -15,7 +15,7 @@ The **newly added** functionalities by us are:
 - Collision free minisnap trajectory optimization using two methods, namely corridor bounding method and waypoint insertion method.
 - Kinodynamics RRT* using polynomial as steering function.
 - Velocity Obstacles (currently under construction).
-- Dynamic window approach.
+- Dynamic window approach (not used due to poor performance).
 - Random generated map for simulation.
 
 ### Dependencies
