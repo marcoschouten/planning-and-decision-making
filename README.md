@@ -1,10 +1,10 @@
 ## Quadrotor Planning (RO47005 Project)
 
 ### Simulation environment
-This project is built base on this [simulation environment](https://github.com/Bharath2/Quadrotor-Simulation).  The already built functionalities in this environment are:
+This project is built based on this [simulation environment](https://github.com/Bharath2/Quadrotor-Simulation).  The already built functionalities in this environment are:
 
 - Informed-RRT* path planner.
-- Minisnap trajectory generation without collision avoidance (solved by closed-form solution).
+- Minisnap trajectory generation (solved by closed-form solution) without collision avoidance .
 - A non-linear controller for path following.
 - A quadrotor simulator.
 
@@ -13,7 +13,7 @@ The **newly added** functionalities by us are:
 
 - PRM* path planner.
 - Collision free minisnap trajectory optimization using two methods, namely corridor bounding method and waypoint insertion method.
-- A simplified version of Kinodynamics RRT*.
+- Kinodynamics RRT* using polynomial as steering function.
 - Velocity Obstacles.
 - Dynamic window approach.
 - Random generated map for simulation.
@@ -45,3 +45,9 @@ python Quadrotor-Simulation/runsim.py
 <div align=center>
 <img width="400" height="350" src="https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/vo.gif"/>
 </div>
+
+### Future work
+- Trajectory optimization of kinodynamics RRT*
+- Using B-spline for collision avoidance
+- Finer adjustment for velocity obstacle 
+- Try to implement model predictive control (MPC)
