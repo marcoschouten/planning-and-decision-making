@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
 from PathPlanning import RRTStar, Map, KinoRRTStar
 from PathPlanning.prm_star import PRMStar
-from TrajGen import trajOpt, Helix_waypoints, Circle_waypoints, trajGenerator, Bs_trajOpt
+from TrajGen import Helix_waypoints, Circle_waypoints, Waypoint_insertion_trajOpt, Corridor_bounding_trajOpt
 from Quadrotor import QuadSim, QuadSim_plan_traj_visual
 from PathPlanning.maputils import *
 import controller
@@ -48,10 +48,10 @@ if solution == "rrt":
     start_time = time.time()
     try:
         print("Obstacle avoidance using flying corridor")
-        traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap & flying corridor
+        traj = Corridor_bounding_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap & flying corridor
     except:
         print("Obstacle avoidance using point inseration")
-        traj = trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap &  point inseration
+        traj = Waypoint_insertion_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # minisnap &  point inseration
     Tmax = traj.time_list[-1]
     des_state = traj.get_des_state
     time_for_trajectory = np.round_(time.time() - start_time, decimals=2, out=None)
@@ -74,10 +74,10 @@ if solution == "prm":
     start_time = time.time()
     try:
         print("Obstacle avoidance using flying corridor")
-        traj = Bs_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using flying corridor
+        traj = Corridor_bounding_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using flying corridor
     except:
         print("Obstacle avoidance using point inseration")
-        traj = trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using point inseration
+        traj = Waypoint_insertion_trajOpt(waypoints, mapobs, max_vel=1.0, gamma=1e6) # obstacle avoidance using point inseration
     Tmax = traj.time_list[-1]
     des_state = traj.get_des_state
     time_for_trajectory = np.round_(time.time() - start_time, decimals=2, out=None)

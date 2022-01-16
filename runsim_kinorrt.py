@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as Axes3D
 from PathPlanning import RRTStar, Map, KinoRRTStar
 from PathPlanning.prm_star import PRMStar
-from TrajGen import trajOpt, Helix_waypoints, Circle_waypoints, trajGenerator, Bs_trajOpt
+from TrajGen import Helix_waypoints, Circle_waypoints, Waypoint_insertion_trajOpt, Corridor_bounding_trajOpt
 from Quadrotor import QuadSim, QuadSim_plan_traj_visual
 from PathPlanning.maputils import *
 import controller
