@@ -14,7 +14,7 @@ The **newly added** functionalities by us are:
 - PRM* path planner.
 - Collision free minisnap trajectory optimization using two methods, namely corridor bounding method and waypoint insertion method.
 - Kinodynamics RRT* using polynomial as steering function.
-- Velocity Obstacles.
+- Velocity Obstacles (currently under construction).
 - Dynamic window approach.
 - Random generated map for simulation.
 
@@ -38,7 +38,7 @@ python runsim_kinorrt.py
 <img width="400" height="350" src="https://github.com/MarcoSchouten/Planning_Project/blob/main/imgs/kino_rrt.gif"/>
 </div>
 
-#### Velocity Obstacle
+#### Velocity Obstacle (still under construction)
 ```
 python Quadrotor-Simulation/runsim.py
 ```
