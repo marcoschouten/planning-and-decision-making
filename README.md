@@ -8,7 +8,7 @@ This project is built based on this [simulation environment](https://github.com/
 - A non-linear controller for path following.
 - A quadrotor simulator.
 
-### Our contribution
+### Our contributions
 The **newly added** functionalities by us are:
 
 - PRM* path planner.
@@ -17,6 +17,8 @@ The **newly added** functionalities by us are:
 - Velocity Obstacles (currently under construction).
 - Dynamic window approach (not used due to poor performance).
 - Random generated map for simulation.
+
+Please refer to our [report](/RO47005_FinalReport.pdf) for detailed infomation.
 
 ### Dependencies
 numpy, matplotlib, rtree-linux, scipy, CVXPY, CVXOPT
